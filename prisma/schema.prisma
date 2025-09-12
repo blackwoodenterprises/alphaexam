@@ -1,0 +1,244 @@
+// AlphaExam Database Schema
+// Comprehensive exam portal for mathematical olympiads and competitive exams
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - integrates with Clerk authentication
+model User {
+  id                 String   @id @default(cuid())
+  clerkId            String   @unique
+  email              String   @unique
+  firstName          String?
+  lastName           String?
+  phoneNumber        String?
+  preferredExams     String[] // Array of exam types user is interested in
+  academicLevel      String? // User's current academic level
+  goals              String? // User's study goals
+  onboardingComplete Boolean  @default(false) // Track if onboarding is completed
+  role               UserRole @default(STUDENT)
+  credits            Float    @default(0.0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relationships
+  examAttempts ExamAttempt[]
+  transactions Transaction[]
+  createdExams Exam[]        @relation("ExamCreator")
+
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+// Category model for organizing questions
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  subcategories Subcategory[]
+  questions     Question[]
+
+  @@map("categories")
+}
+
+// Subcategory model for fine-grained question organization
+model Subcategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  category  Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([name, categoryId])
+  @@map("subcategories")
+}
+
+// Question model - stores processed questions from images
+model Question {
+  id              String          @id @default(cuid())
+  imageUrl        String // Original uploaded image URL
+  questionText    String // LaTeX formatted question text
+  optionA         String // Option A in LaTeX
+  optionB         String // Option B in LaTeX
+  optionC         String // Option C in LaTeX
+  optionD         String // Option D in LaTeX
+  correctAnswer   CorrectAnswer // Which option is correct
+  explanation     String? // Explanation for the correct answer
+  adminNotes      String? // Internal admin notes
+  class           Int // Grade/Standard (1-12, etc.)
+  difficultyLevel DifficultyLevel
+  tags            String[] // Array of tags for better searchability
+  apiResponse     Json // Full JSON response from the question processing API
+  figures         Json? // Processed figures/diagrams from the question
+  categoryId      String
+  subcategoryId   String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relationships
+  category      Category       @relation(fields: [categoryId], references: [id])
+  subcategory   Subcategory?   @relation(fields: [subcategoryId], references: [id])
+  examQuestions ExamQuestion[]
+
+  @@map("questions")
+}
+
+enum CorrectAnswer {
+  A
+  B
+  C
+  D
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+// Exam model - represents mock tests
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  price       Float    @default(0.0) // Price in credits
+  duration    Int // Duration in minutes
+  isActive    Boolean  @default(true)
+  isFree      Boolean  @default(false)
+  category    ExamType @default(OLYMPIAD)
+  imageUrl    String? // Exam cover image
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  createdBy     User           @relation("ExamCreator", fields: [createdById], references: [id])
+  examQuestions ExamQuestion[]
+  examAttempts  ExamAttempt[]
+
+  @@map("exams")
+}
+
+enum ExamType {
+  OLYMPIAD
+  JEE
+  NEET
+  OTHER
+}
+
+// Junction table for Exam-Question relationship with specific marks
+model ExamQuestion {
+  id            String @id @default(cuid())
+  examId        String
+  questionId    String
+  marks         Float  @default(1.0) // Marks for correct answer
+  negativeMarks Float  @default(0.0) // Negative marks for wrong answer
+  order         Int // Question order in the exam
+
+  // Relationships
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@unique([examId, order])
+  @@map("exam_questions")
+}
+
+// Exam attempt model - tracks user's exam sessions
+model ExamAttempt {
+  id          String     @id @default(cuid())
+  userId      String
+  examId      String
+  startTime   DateTime   @default(now())
+  endTime     DateTime?
+  status      ExamStatus @default(IN_PROGRESS)
+  totalMarks  Float? // Total marks obtained
+  percentage  Float? // Percentage score
+  creditsUsed Float // Credits deducted for this attempt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relationships
+  user    User         @relation(fields: [userId], references: [id])
+  exam    Exam         @relation(fields: [examId], references: [id])
+  answers ExamAnswer[]
+
+  @@map("exam_attempts")
+}
+
+enum ExamStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+// Individual question answers in an exam attempt
+model ExamAnswer {
+  id             String         @id @default(cuid())
+  attemptId      String
+  questionId     String
+  selectedAnswer CorrectAnswer?
+  isCorrect      Boolean?
+  marksObtained  Float          @default(0.0)
+  timeSpent      Int? // Time spent on this question in seconds
+
+  // Relationships
+  attempt ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@map("exam_answers")
+}
+
+// Transaction model for payment tracking
+model Transaction {
+  id                String            @id @default(cuid())
+  userId            String
+  type              TransactionType
+  amount            Float // Amount in INR
+  credits           Float // Credits added/deducted
+  status            TransactionStatus @default(PENDING)
+  razorpayOrderId   String? // Razorpay order ID
+  razorpayPaymentId String? // Razorpay payment ID
+  description       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  CREDIT_PURCHASE
+  EXAM_PAYMENT
+  ADMIN_CREDIT
+  REFUND
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

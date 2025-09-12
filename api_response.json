@@ -1,0 +1,61 @@
+{
+    "message": "Image processed successfully",
+    "original_image_url": "https://ucarecdn.com/2ffa2ae2-753a-4793-8ef3-07f86b078649/",
+    "processed_images": {
+        "figures": [
+            {
+                "bbox": [
+                    1149,
+                    5,
+                    1581,
+                    307
+                ],
+                "confidence": 0.9484915137290955,
+                "url": "https://ucarecdn.com/122eb3b3-8489-4512-9905-a25154ba202d/"
+            }
+        ],
+        "processed_image": "https://ucarecdn.com/1937bb62-c7c6-4095-9855-28ce91f2b1e4/"
+    },
+    "roboflow_detection": {
+        "image": {
+            "height": 358,
+            "width": 1600
+        },
+        "inference_id": "e4eb1ecf-2c48-4007-b5bb-fa1ec43da86a",
+        "predictions": [
+            {
+                "class": "diagram",
+                "class_id": 0,
+                "confidence": 0.9484915137290955,
+                "detection_id": "1c112980-cd95-46c8-b5a7-6a311f5fcc18",
+                "height": 302.70541191101074,
+                "width": 432.6661376953125,
+                "x": 1365.4883422851562,
+                "y": 156.46251010894775
+            }
+        ],
+        "time": 0.3526177280000411
+    },
+    "success": true,
+    "transcription": {
+        "figures_detected": 1,
+        "processing_status": "success",
+        "raw_response": "<question>\n    <text>A parallel plate capacitor with plate area A and separation d is filled with two dielectrics $K_1$ and $K_2$ each of thickness $d/2$ as shown in figure. The equivalent capacitance is</text>\n    <options>\n        <option id=\"A\">$\\frac{\\varepsilon_0 A}{d}(K_1 + K_2)$</option>\n        <option id=\"B\">$\\frac{\\varepsilon_0 A K_1 K_2}{d}$</option>\n        <option id=\"C\">$\\frac{2\\varepsilon_0 A K_1 K_2}{d(K_1 + K_2)}$</option>\n        <option id=\"D\">$\\frac{2\\varepsilon_0 A(K_1 + K_2)}{d K_1 K_2}$</option>\n    </options>\n    <figures>\n        <figure id=\"1\">Diagram showing a parallel plate capacitor with two dielectric materials $K_1$ and $K_2$ arranged between the plates</figure>\n    </figures>\n</question>",
+        "transcription": {
+            "confidence": 0.9,
+            "figures": [
+                {
+                    "description": "Diagram showing a parallel plate capacitor with two dielectric materials $K_1$ and $K_2$ arranged between the plates",
+                    "id": "1"
+                }
+            ],
+            "options": {
+                "A": "$\\frac{\\varepsilon_0 A}{d}(K_1 + K_2)$",
+                "B": "$\\frac{\\varepsilon_0 A K_1 K_2}{d}$",
+                "C": "$\\frac{2\\varepsilon_0 A K_1 K_2}{d(K_1 + K_2)}$",
+                "D": "$\\frac{2\\varepsilon_0 A(K_1 + K_2)}{d K_1 K_2}$"
+            },
+            "question_text": "A parallel plate capacitor with plate area A and separation d is filled with two dielectrics $K_1$ and $K_2$ each of thickness $d/2$ as shown in figure. The equivalent capacitance is"
+        }
+    }
+}

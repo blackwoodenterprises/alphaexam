@@ -1,26 +1,181 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* AlphaExam Pastel Color Palette */
+  --primary: 147 51 234; /* Purple-600 */
+  --primary-foreground: 255 255 255;
+  --secondary: 219 234 254; /* Blue-100 */
+  --secondary-foreground: 30 58 138; /* Blue-900 */
+  --accent: 253 224 71; /* Yellow-300 */
+  --accent-foreground: 133 77 14; /* Yellow-800 */
+  --background: 255 255 255;
+  --foreground: 31 41 55; /* Gray-800 */
+  --card: 255 255 255;
+  --card-foreground: 31 41 55;
+  --popover: 255 255 255;
+  --popover-foreground: 31 41 55;
+  --border: 229 231 235; /* Gray-200 */
+  --input: 243 244 246; /* Gray-100 */
+  --ring: 147 51 234; /* Purple-600 */
+  --muted: 249 250 251; /* Gray-50 */
+  --muted-foreground: 107 114 128; /* Gray-500 */
+  --destructive: 239 68 68; /* Red-500 */
+  --destructive-foreground: 255 255 255;
+  --success: 34 197 94; /* Green-500 */
+  --success-foreground: 255 255 255;
+  --warning: 245 158 11; /* Amber-500 */
+  --warning-foreground: 255 255 255;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+
+  /* Primary Colors */
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+
+  /* Base Colors */
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+
+  /* Border & Input */
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+
+  /* Muted */
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+
+  /* Status Colors */
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  --color-success: rgb(var(--success));
+  --color-success-foreground: rgb(var(--success-foreground));
+  --color-warning: rgb(var(--warning));
+  --color-warning-foreground: rgb(var(--warning-foreground));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: rgb(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted-foreground) / 0.5);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Math rendering */
+.MathJax {
+  outline: none;
+}
+
+/* Exam taking mode - full screen */
+.exam-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: white;
+}
+
+/* Gradient backgrounds for cards */
+.gradient-card {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--secondary)) 0%,
+    rgb(var(--muted)) 100%
+  );
+}
+
+.gradient-primary {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--primary)) 0%,
+    rgb(var(--primary) / 0.8) 100%
+  );
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Button animations */
+.btn-animate {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-animate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Container max width for large screens */
+.container-restricted {
+  max-width: 1400px;
+  margin: 0 auto;
 }
