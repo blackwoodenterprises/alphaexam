@@ -330,7 +330,7 @@ export default async function ExamsPage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-purple-600 px-8 py-3 font-semibold"
+                      className="w-full sm:w-auto border-2 border-white/90 text-white hover:bg-white hover:text-purple-600 px-8 py-3 font-semibold backdrop-blur-sm bg-white/10"
                     >
                       View Dashboard
                     </Button>

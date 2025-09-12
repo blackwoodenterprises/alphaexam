@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { requireAdminAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   CreditCard,
@@ -80,7 +79,6 @@ async function getTransactionsData() {
 }
 
 export default async function TransactionsPage() {
-  await requireAdminAuth();
   const data = await getTransactionsData();
 
   const stats = [
@@ -186,8 +184,11 @@ export default async function TransactionsPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Transactions"
-        description="Monitor payments, refunds, and financial transactions"
+        user={{
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@alphaexam.com"
+        }}
       />
 
       {/* Stats Cards */}

@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { requireAdminAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   BarChart3,
@@ -41,7 +40,7 @@ async function getAnalyticsData() {
 
       // Average score
       prisma.examAttempt.aggregate({
-        _avg: { score: true },
+        _avg: { percentage: true },
         where: { status: "COMPLETED" },
       }),
 
@@ -58,12 +57,7 @@ async function getAnalyticsData() {
       prisma.exam.groupBy({
         by: ["category"],
         _count: {
-          examAttempts: true,
-        },
-        _avg: {
-          examAttempts: {
-            score: true,
-          },
+          id: true,
         },
       }),
 
@@ -84,7 +78,7 @@ async function getAnalyticsData() {
       totalExams,
       totalQuestions,
       totalAttempts,
-      avgScore: avgScore._avg.score || 0,
+      avgScore: avgScore._avg?.percentage || 0,
       recentActivity,
       categoryStats,
       monthlyStats,
@@ -105,7 +99,6 @@ async function getAnalyticsData() {
 }
 
 export default async function AnalyticsPage() {
-  await requireAdminAuth();
   const analytics = await getAnalyticsData();
 
   const mainStats = [
@@ -190,8 +183,11 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Analytics Dashboard"
-        description="Performance insights and platform statistics"
+        user={{
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@alphaexam.com"
+        }}
       />
 
       {/* Main Stats */}

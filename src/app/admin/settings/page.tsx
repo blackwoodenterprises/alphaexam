@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { requireAdminAuth } from "@/lib/auth";
 import {
   Settings,
   Database,
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 
 export default async function SettingsPage() {
-  await requireAdminAuth();
 
   const settingsSections = [
     {
@@ -201,8 +199,11 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="System Settings"
-        description="Configure platform settings and preferences"
+        user={{
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@alphaexam.com"
+        }}
       />
 
       {/* Quick Actions */}

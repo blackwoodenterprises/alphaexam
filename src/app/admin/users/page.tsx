@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { requireAdminAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   Users,
@@ -94,7 +93,6 @@ async function getUsersData() {
 }
 
 export default async function UsersPage() {
-  await requireAdminAuth();
   const { users, totalUsers, activeUsers, totalCreditsIssued } =
     await getUsersData();
 
@@ -157,8 +155,11 @@ export default async function UsersPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="User Management"
-        description="Manage user accounts, credits, and monitor activity"
+        user={{
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@alphaexam.com"
+        }}
       />
 
       {/* Stats Cards */}

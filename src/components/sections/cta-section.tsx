@@ -58,7 +58,7 @@ export function CTASection() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 hover:bg-white/10 text-white btn-animate text-lg px-8 py-4 h-auto backdrop-blur-sm"
+                className="border-2 border-white/90 text-white hover:bg-white hover:text-purple-600 btn-animate text-lg px-8 py-4 h-auto backdrop-blur-sm bg-white/10"
               >
                 Browse Exams
               </Button>

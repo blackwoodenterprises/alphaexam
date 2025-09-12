@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { requireAdminAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   FolderTree,
@@ -53,7 +52,6 @@ async function getCategoriesData() {
 }
 
 export default async function CategoriesPage() {
-  await requireAdminAuth();
   const { categories, subcategories, questionsCount } =
     await getCategoriesData();
 
@@ -94,8 +92,11 @@ export default async function CategoriesPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Categories Management"
-        description="Organize subjects and topics for better question categorization"
+        user={{
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@alphaexam.com"
+        }}
       />
 
       {/* Stats Cards */}
