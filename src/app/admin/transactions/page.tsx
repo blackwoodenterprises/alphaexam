@@ -12,7 +12,6 @@ import {
   Download,
   RefreshCw,
   Calendar,
-  User,
   Receipt,
   CheckCircle,
   XCircle,

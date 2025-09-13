@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
       filename: blob.pathname 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Image upload error:', error);
     
-    if (error.message === 'Admin access required') {
+    if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     

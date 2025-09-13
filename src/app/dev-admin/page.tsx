@@ -14,24 +14,8 @@ import { Shield, Users, Database, Settings } from "lucide-react";
 
 export default function DevAdminPage() {
   const { user, isLoaded } = useUser();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<Array<{id: string; firstName?: string; lastName?: string; email: string; role: string; _count: {examAttempts: number; transactions: number}}>>([]);
   const [loading, setLoading] = useState(false);
-
-  // Only show in development
-  if (process.env.NODE_ENV === "production") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Not Available
-          </h1>
-          <p className="text-gray-600">
-            This page is only available in development mode.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -75,10 +59,26 @@ export default function DevAdminPage() {
   };
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && process.env.NODE_ENV !== "production") {
       fetchUsers();
     }
   }, [isLoaded]);
+
+  // Only show in development
+  if (process.env.NODE_ENV === "production") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Not Available
+          </h1>
+          <p className="text-gray-600">
+            This page is only available in development mode.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -285,7 +285,7 @@ export default function DevAdminPage() {
                 an account with Clerk
               </div>
               <div>
-                <strong>2. Make Admin:</strong> Click "Make Me Admin" to grant
+                <strong>2. Make Admin:</strong> Click &quot;Make Me Admin&quot; to grant
                 yourself admin privileges
               </div>
               <div>

@@ -15,7 +15,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 mb-8">
             <Trophy className="w-4 h-4 mr-2" />
-            India's #1 Mock Testing Platform
+            India&apos;s #1 Mock Testing Platform
           </div>
 
           {/* Main heading */}

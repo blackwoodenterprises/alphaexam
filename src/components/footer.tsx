@@ -73,7 +73,7 @@ export function Footer() {
             </Link>
 
             <p className="text-gray-600 max-w-md">
-              India's best online mock testing platform for mathematical
+              India&apos;s best online mock testing platform for mathematical
               olympiads and competitive exams. Join 100,000+ students preparing
               for success.
             </p>

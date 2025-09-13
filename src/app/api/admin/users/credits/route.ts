@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
     }
 
     let newCredits: number;
-    let transactionType: "CREDIT_PURCHASE" | "ADMIN_ADJUSTMENT";
+    let transactionType: "CREDIT_PURCHASE" | "ADMIN_CREDIT";
 
     if (type === "ADD") {
       newCredits = user.credits + amount;
-      transactionType = "ADMIN_ADJUSTMENT";
+      transactionType = "ADMIN_CREDIT";
     } else if (type === "DEDUCT") {
       if (user.credits < amount) {
         return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         );
       }
       newCredits = user.credits - amount;
-      transactionType = "ADMIN_ADJUSTMENT";
+      transactionType = "ADMIN_CREDIT";
     } else {
       return NextResponse.json(
         { error: "Invalid type. Must be ADD or DEDUCT" },
@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
           userId,
           type: transactionType,
           amount: type === "ADD" ? amount : -amount,
+          credits: type === "ADD" ? amount : -amount,
           status: "COMPLETED",
-          paymentMethod: "ADMIN_ADJUSTMENT",
           razorpayPaymentId: `admin_${Date.now()}`,
           description: `Admin ${type.toLowerCase()}: ${reason}`,
         },

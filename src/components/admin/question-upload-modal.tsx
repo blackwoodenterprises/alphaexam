@@ -315,7 +315,7 @@ export function QuestionUploadModal({
                       />
                       <label htmlFor="image-upload">
                         <Button
-                          as="span"
+                          type="button"
                           disabled={uploading}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"
                         >

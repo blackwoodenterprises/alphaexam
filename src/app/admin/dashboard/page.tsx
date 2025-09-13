@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import {
   Card,
@@ -90,7 +89,6 @@ async function getDashboardStats() {
 }
 
 export default async function AdminDashboard() {
-  const { userId } = auth();
   const stats = await getDashboardStats();
 
   const quickStats = [
@@ -156,7 +154,7 @@ export default async function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">
-          Welcome back! Here's what's happening with AlphaExam today.
+          Welcome back! Here&apos;s what&apos;s happening with AlphaExam today.
         </p>
       </div>
 
@@ -183,9 +181,9 @@ export default async function AdminDashboard() {
                 className={`text-xs ${
                   stat.changeType === "positive"
                     ? "text-green-600"
-                    : stat.changeType === "negative"
-                    ? "text-red-600"
-                    : "text-gray-500"
+                    : stat.changeType === "neutral"
+                    ? "text-gray-500"
+                    : "text-red-600"
                 }`}
               >
                 {stat.change}

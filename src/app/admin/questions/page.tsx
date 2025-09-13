@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import {
   Card,
@@ -11,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, Upload, Eye, Edit, Trash2 } from "lucide-react";
 import { QuestionUploadModal } from "@/components/admin/question-upload-modal";
 import { QuestionPreview } from "@/components/admin/question-preview";
+import Image from "next/image";
 
 async function getQuestions() {
   try {
@@ -36,7 +36,11 @@ async function getQuestions() {
       take: 20, // Limit for performance
     });
 
-    return questions;
+    return questions.map(question => ({
+      ...question,
+      explanation: question.explanation ?? undefined,
+      adminNotes: question.adminNotes ?? undefined,
+    }));
   } catch (error) {
     console.error("Error fetching questions:", error);
     return [];
@@ -255,9 +259,11 @@ export default async function QuestionsPage() {
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-start space-x-3">
-                            <img
+                            <Image
                               src={question.imageUrl}
                               alt="Question"
+                              width={64}
+                              height={48}
                               className="w-16 h-12 object-cover rounded border"
                             />
                             <div className="flex-1 min-w-0">

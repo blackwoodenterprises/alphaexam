@@ -1,6 +1,8 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import Image from "next/image";
 import {
   Target,
   Users,
@@ -263,9 +265,11 @@ export default function AboutPage() {
                   className="text-center hover:shadow-lg transition-all duration-300"
                 >
                   <CardContent className="p-8">
-                    <img
+                    <Image
                       src={member.image}
                       alt={member.name}
+                      width={96}
+                      height={96}
                       className="w-24 h-24 rounded-full mx-auto mb-6"
                     />
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -296,12 +300,12 @@ export default function AboutPage() {
                 journey to academic excellence with AlphaExam.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <a
+                <Link
                   href="/sign-up"
                   className="inline-flex items-center justify-center px-8 py-4 bg-white text-purple-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
                 >
                   Start Free Trial
-                </a>
+                </Link>
                 <a
                   href="/exams"
                   className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-purple-600 transition-colors duration-200"

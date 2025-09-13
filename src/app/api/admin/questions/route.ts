@@ -82,10 +82,10 @@ export async function POST(request: NextRequest) {
       question 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create question error:', error);
     
-    if (error.message === 'Admin access required') {
+    if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     
@@ -113,11 +113,20 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: {
+      categoryId?: string;
+      subcategoryId?: string;
+      difficultyLevel?: 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
+      class?: number;
+      OR?: Array<{
+        questionText?: { contains: string; mode: 'insensitive' };
+        tags?: { has: string };
+      }>;
+    } = {};
     
     if (categoryId) where.categoryId = categoryId;
     if (subcategoryId) where.subcategoryId = subcategoryId;
-    if (difficultyLevel) where.difficultyLevel = difficultyLevel;
+    if (difficultyLevel) where.difficultyLevel = difficultyLevel as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
     if (questionClass) where.class = parseInt(questionClass);
     if (search) {
       where.OR = [
@@ -163,10 +172,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get questions error:', error);
     
-    if (error.message === 'Admin access required') {
+    if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     

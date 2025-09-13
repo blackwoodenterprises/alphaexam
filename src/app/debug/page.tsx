@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/card";
 
 export default async function DebugPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const clerkUser = await currentUser();
 
   let dbUser = null;
@@ -126,13 +127,13 @@ export default async function DebugPage() {
                 </p>
                 <p className="text-yellow-700">
                   Go to{" "}
-                  <a href="/sign-up" className="underline">
+                  <Link href="/sign-up" className="underline">
                     /sign-up
-                  </a>{" "}
+                  </Link>{" "}
                   or{" "}
-                  <a href="/sign-in" className="underline">
+                  <Link href="/sign-in" className="underline">
                     /sign-in
-                  </a>
+                  </Link>
                 </p>
               </div>
             )}
@@ -161,7 +162,7 @@ export default async function DebugPage() {
                   <a href="/dev-admin" className="underline">
                     /dev-admin
                   </a>{" "}
-                  and click "Make Me Admin"
+                  and click &quot;Make Me Admin&quot;
                 </p>
               </div>
             )}

@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   console.log('Request headers:', Object.fromEntries(request.headers.entries()));
 
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     const user = await currentUser();
     
     return NextResponse.json({
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     console.error('Auth test error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       headers: Object.fromEntries(request.headers.entries())
     });
   }

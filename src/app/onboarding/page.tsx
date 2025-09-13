@@ -13,11 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowRight, Phone, User, Target, BookOpen } from "lucide-react";
+import { ArrowRight, Phone, Target, BookOpen } from "lucide-react";
 
 export default function OnboardingPage() {
   const { user } = useUser();
-  const { getToken } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -113,8 +112,9 @@ export default function OnboardingPage() {
       }
     } catch (error) {
       console.error("Onboarding error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       alert(
-        `There was an error saving your information: ${error.message}. Please try again.`
+        `There was an error saving your information: ${errorMessage}. Please try again.`
       );
     } finally {
       setIsLoading(false);
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
                   }
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  We'll use this for exam notifications and support
+                  We&apos;ll use this for exam notifications and support
                 </p>
               </div>
 
@@ -178,7 +178,7 @@ export default function OnboardingPage() {
               </div>
               <CardTitle className="text-2xl">Your Exam Interests</CardTitle>
               <CardDescription>
-                Select the exams you're preparing for (you can choose multiple)
+                Select the exams you&apos;re preparing for (you can choose multiple)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -369,7 +369,7 @@ export default function OnboardingPage() {
                 Welcome to AlphaExam, {user?.firstName}!
               </h1>
               <p className="text-lg text-gray-600">
-                Let's set up your profile to personalize your experience
+                Let&apos;s set up your profile to personalize your experience
               </p>
             </div>
 

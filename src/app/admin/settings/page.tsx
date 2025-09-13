@@ -13,7 +13,6 @@ import {
   Save,
   RefreshCw,
   Eye,
-  EyeOff,
 } from "lucide-react";
 
 export default async function SettingsPage() {
@@ -319,7 +318,14 @@ export default async function SettingsPage() {
 }
 
 // Individual Setting Item Component
-function SettingItem({ setting }: { setting: any }) {
+interface Setting {
+  key: string;
+  label: string;
+  value: string | boolean | number;
+  type: string;
+}
+
+function SettingItem({ setting }: { setting: Setting }) {
   if (setting.type === "boolean") {
     return (
       <div className="flex items-center justify-between">
@@ -354,7 +360,7 @@ function SettingItem({ setting }: { setting: any }) {
         <div className="relative">
           <input
             type="password"
-            value={setting.value}
+            value={String(setting.value)}
             className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             readOnly
           />
@@ -373,7 +379,7 @@ function SettingItem({ setting }: { setting: any }) {
       </label>
       <input
         type={setting.type}
-        value={setting.value}
+        value={String(setting.value)}
         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
       />
     </div>

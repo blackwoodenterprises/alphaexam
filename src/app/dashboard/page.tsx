@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
-  Trophy,
   Clock,
   TrendingUp,
   User,
@@ -154,9 +153,9 @@ export default async function UserDashboard() {
                     className={`text-xs ${
                       stat.changeType === "positive"
                         ? "text-green-600"
-                        : stat.changeType === "negative"
-                        ? "text-red-600"
-                        : "text-gray-500"
+                        : stat.changeType === "neutral"
+                        ? "text-gray-500"
+                        : "text-red-600"
                     }`}
                   >
                     {stat.change}
@@ -201,9 +200,9 @@ export default async function UserDashboard() {
                           <div className="text-sm font-medium text-gray-900">
                             {attempt.status}
                           </div>
-                          {attempt.score !== null && (
+                          {attempt.percentage !== null && (
                             <div className="text-xs text-gray-500">
-                              Score: {attempt.score}%
+                              Score: {attempt.percentage}%
                             </div>
                           )}
                         </div>
@@ -296,7 +295,7 @@ export default async function UserDashboard() {
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white">
-                  <h3 className="font-bold text-lg mb-2">Today's Goal</h3>
+                  <h3 className="font-bold text-lg mb-2">Today&apos;s Goal</h3>
                   <p className="text-purple-100 mb-3">
                     Complete 1 practice test in Mathematics
                   </p>

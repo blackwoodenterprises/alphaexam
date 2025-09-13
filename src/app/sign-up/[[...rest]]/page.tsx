@@ -46,7 +46,7 @@ export default function SignUpPage() {
                   </span>
                 </h1>
                 <p className="text-xl text-gray-600">
-                  Start your journey to exam success with India's most trusted
+                  Start your journey to exam success with India&apos;s most trusted
                   mock testing platform.
                 </p>
               </div>

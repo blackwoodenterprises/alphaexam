@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper endpoint to get user info for admin actions
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

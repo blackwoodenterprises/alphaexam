@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -76,10 +75,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create exam error:', error);
     
-    if (error.message === 'Admin access required') {
+    if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     
@@ -105,9 +104,16 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: {
+      category?: 'OLYMPIAD' | 'JEE' | 'NEET' | 'OTHER';
+      isActive?: boolean;
+      OR?: Array<{
+        title?: { contains: string; mode: 'insensitive' };
+        description?: { contains: string; mode: 'insensitive' };
+      }>;
+    } = {};
     
-    if (category) where.category = category;
+    if (category) where.category = category as 'OLYMPIAD' | 'JEE' | 'NEET' | 'OTHER';
     if (isActive !== null) where.isActive = isActive === 'true';
     if (search) {
       where.OR = [
@@ -151,10 +157,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get exams error:', error);
     
-    if (error.message === 'Admin access required') {
+    if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     

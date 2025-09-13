@@ -86,7 +86,6 @@ async function getExamStats() {
 }
 
 export default async function ExamsManagementPage() {
-  const { userId } = await auth();
   const exams = await getExams();
   const stats = await getExamStats();
 
@@ -185,9 +184,9 @@ export default async function ExamsManagementPage() {
                 className={`text-xs ${
                   stat.changeType === "positive"
                     ? "text-green-600"
-                    : stat.changeType === "negative"
-                    ? "text-red-600"
-                    : "text-gray-500"
+                    : stat.changeType === "neutral"
+                    ? "text-gray-500"
+                    : "text-red-600"
                 }`}
               >
                 {stat.change}

@@ -232,10 +232,10 @@ export function ExamCategoriesSection() {
           <div className="inline-flex items-center space-x-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
             <div className="text-gray-900">
               <div className="font-semibold">
-                Can't find your exam category?
+                Can&apos;t find your exam category?
               </div>
               <div className="text-sm text-gray-600">
-                We're constantly adding new exams and subjects
+                We&apos;re constantly adding new exams and subjects
               </div>
             </div>
             <Link href="/contact">

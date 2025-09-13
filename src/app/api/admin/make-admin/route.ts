@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       user 
     });
 
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }

@@ -82,7 +82,7 @@ export default async function ProfilePage() {
     user.examAttempts.length > 0
       ? Math.round(
           user.examAttempts.reduce(
-            (sum, attempt) => sum + (attempt.score || 0),
+            (sum, attempt) => sum + (attempt.percentage || 0),
             0
           ) / user.examAttempts.length
         )
@@ -359,9 +359,9 @@ export default async function ProfilePage() {
                             <div className="text-sm font-medium text-gray-900">
                               {attempt.status}
                             </div>
-                            {attempt.score !== null && (
+                            {attempt.percentage !== null && (
                               <div className="text-sm text-gray-500">
-                                Score: {attempt.score}%
+                                Score: {attempt.percentage}%
                               </div>
                             )}
                           </div>

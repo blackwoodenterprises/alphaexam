@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import { UserRole } from "@prisma/client";
 
 export async function getUserFromDB() {
-  const { userId } = auth();
+  const { userId } = await auth();
   
   if (!userId) {
     return null;
@@ -64,7 +64,7 @@ export async function createOrUpdateUser() {
 }
 
 export async function requireAuth() {
-  const { userId } = auth();
+  const { userId } = await auth();
   
   if (!userId) {
     throw new Error("Unauthorized");
@@ -74,7 +74,7 @@ export async function requireAuth() {
 }
 
 export async function requireAdminAuth() {
-  const { userId } = auth();
+  const { userId } = await auth();
   
   if (!userId) {
     throw new Error("Unauthorized");
@@ -82,19 +82,19 @@ export async function requireAdminAuth() {
 
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    select: { role: true },
+    select: { id: true, role: true },
   });
 
   if (!user || user.role !== UserRole.ADMIN) {
     throw new Error("Admin access required");
   }
 
-  return userId;
+  return user;
 }
 
 export async function isAdmin(userId?: string): Promise<boolean> {
   if (!userId) {
-    const { userId: authUserId } = auth();
+    const { userId: authUserId } = await auth();
     if (!authUserId) return false;
     userId = authUserId;
   }
