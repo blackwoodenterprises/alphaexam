@@ -7,37 +7,29 @@ import { AdminHeader } from "@/components/admin/admin-header";
 async function checkAdminAccess() {
   const { userId } = await auth();
 
-  console.log("Admin access check - userId:", userId);
-
   if (!userId) {
-    console.log("No userId found, redirecting to sign-in");
     redirect("/sign-in");
   }
 
+  let user;
   try {
-    const user = await prisma.user.findUnique({
+    user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: { role: true, firstName: true, lastName: true, email: true },
     });
-
-    console.log("User found:", user);
-
-    if (!user) {
-      console.log("No user found in database, redirecting to home");
-      redirect("/");
-    }
-
-    if (user.role !== "ADMIN") {
-      console.log("User is not admin, role:", user.role, "redirecting to home");
-      redirect("/");
-    }
-
-    console.log("Admin access granted for user:", user.email);
-    return user;
-  } catch (error) {
-    console.error("Admin access check error:", error);
+  } catch {
     redirect("/");
   }
+
+  if (!user) {
+    redirect("/");
+  }
+
+  if (user.role !== "ADMIN") {
+    redirect("/");
+  }
+
+  return user;
 }
 
 export default async function AdminLayout({
@@ -48,7 +40,7 @@ export default async function AdminLayout({
   const user = await checkAdminAccess();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" suppressHydrationWarning>
       {/* Admin Header */}
       <AdminHeader user={user} />
 

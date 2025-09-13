@@ -37,22 +37,36 @@ export async function createOrUpdateUser() {
   }
 
   try {
-    const user = await prisma.user.upsert({
-      where: { clerkId: clerkUser.id },
-      update: {
-        email: clerkUser.emailAddresses[0]?.emailAddress || "",
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber,
-      },
-      create: {
+    // First check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId: clerkUser.id }
+    });
+
+    if (existingUser) {
+      // User exists, just update their info from Clerk
+      const user = await prisma.user.update({
+        where: { clerkId: clerkUser.id },
+        data: {
+          email: clerkUser.emailAddresses[0]?.emailAddress || existingUser.email,
+          firstName: clerkUser.firstName || existingUser.firstName,
+          lastName: clerkUser.lastName || existingUser.lastName,
+          phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber || existingUser.phoneNumber,
+        },
+      });
+      return user;
+    }
+
+    // User doesn't exist, create new user
+    const user = await prisma.user.create({
+      data: {
         clerkId: clerkUser.id,
         email: clerkUser.emailAddresses[0]?.emailAddress || "",
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber,
+        firstName: clerkUser.firstName || "",
+        lastName: clerkUser.lastName || "",
+        phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber || null,
         role: UserRole.STUDENT,
-        credits: 0,
+        credits: 10, // Give new users some free credits
+        onboardingComplete: false,
       },
     });
 

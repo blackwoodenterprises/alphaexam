@@ -8,7 +8,7 @@ CREATE TYPE "public"."CorrectAnswer" AS ENUM ('A', 'B', 'C', 'D');
 CREATE TYPE "public"."DifficultyLevel" AS ENUM ('EASY', 'MEDIUM', 'HARD', 'EXPERT');
 
 -- CreateEnum
-CREATE TYPE "public"."ExamType" AS ENUM ('OLYMPIAD', 'JEE', 'NEET', 'OTHER');
+CREATE TYPE "public"."QuestionStatus" AS ENUM ('DRAFT', 'PUBLISHED');
 
 -- CreateEnum
 CREATE TYPE "public"."ExamStatus" AS ENUM ('IN_PROGRESS', 'COMPLETED', 'ABANDONED');
@@ -27,6 +27,11 @@ CREATE TABLE "public"."users" (
     "firstName" TEXT,
     "lastName" TEXT,
     "phoneNumber" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "preferredExams" TEXT[],
+    "academicLevel" TEXT,
+    "goals" TEXT,
+    "onboardingComplete" BOOLEAN NOT NULL DEFAULT false,
     "role" "public"."UserRole" NOT NULL DEFAULT 'STUDENT',
     "credits" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,6 +77,7 @@ CREATE TABLE "public"."questions" (
     "adminNotes" TEXT,
     "class" INTEGER NOT NULL,
     "difficultyLevel" "public"."DifficultyLevel" NOT NULL,
+    "status" "public"."QuestionStatus" NOT NULL DEFAULT 'DRAFT',
     "tags" TEXT[],
     "apiResponse" JSONB NOT NULL,
     "figures" JSONB,
@@ -84,15 +90,27 @@ CREATE TABLE "public"."questions" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."exam_categories" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "exam_categories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."exams" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "price" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "duration" INTEGER NOT NULL,
+    "questionsToServe" INTEGER,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "isFree" BOOLEAN NOT NULL DEFAULT false,
-    "category" "public"."ExamType" NOT NULL DEFAULT 'OLYMPIAD',
+    "examCategoryId" TEXT,
     "imageUrl" TEXT,
     "createdById" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -173,6 +191,9 @@ CREATE UNIQUE INDEX "categories_name_key" ON "public"."categories"("name");
 CREATE UNIQUE INDEX "subcategories_name_categoryId_key" ON "public"."subcategories"("name", "categoryId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "exam_categories_name_key" ON "public"."exam_categories"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "exam_questions_examId_questionId_key" ON "public"."exam_questions"("examId", "questionId");
 
 -- CreateIndex
@@ -189,6 +210,9 @@ ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_categoryId_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "public"."subcategories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_examCategoryId_fkey" FOREIGN KEY ("examCategoryId") REFERENCES "public"."exam_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

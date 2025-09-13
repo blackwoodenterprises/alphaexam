@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -10,10 +11,9 @@ import {
   Users,
   FolderTree,
   Settings,
-  BookOpen,
   BarChart3,
   CreditCard,
-  Home,
+  Palette,
 } from "lucide-react";
 
 const navigationItems = [
@@ -50,6 +50,12 @@ const navigationItems = [
         icon: FolderTree,
         description: "Organize subjects and topics",
       },
+      {
+        name: "Exam Categories",
+        href: "/admin/exam-categories",
+        icon: GraduationCap,
+        description: "Manage exam categories",
+      },
     ],
   },
   {
@@ -84,12 +90,23 @@ const navigationItems = [
         icon: Settings,
         description: "System configuration",
       },
+      {
+        name: "Components",
+        href: "/admin/components-demo",
+        icon: Palette,
+        description: "UI components showcase",
+      },
     ],
   },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <div className="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 overflow-y-auto">
@@ -103,7 +120,7 @@ export function AdminSidebar() {
               </h3>
               <ul className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = isClient && pathname === item.href;
 
                   return (
                     <li key={item.name}>
@@ -145,27 +162,6 @@ export function AdminSidebar() {
             </div>
           ))}
         </nav>
-
-        {/* Quick Stats */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">
-            Quick Stats
-          </h4>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Active Users</span>
-              <span className="font-medium text-gray-900">1,247</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Total Questions</span>
-              <span className="font-medium text-gray-900">45,892</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Exams Today</span>
-              <span className="font-medium text-gray-900">128</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

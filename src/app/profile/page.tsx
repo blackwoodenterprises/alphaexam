@@ -41,7 +41,6 @@ async function getUserProfile() {
             exam: {
               select: {
                 title: true,
-                category: true,
               },
             },
           },
@@ -342,7 +341,7 @@ export default async function ProfilePage() {
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                              {attempt.exam.category.charAt(0)}
+                              {attempt.exam.title.charAt(0)}
                             </div>
                             <div>
                               <div className="font-medium text-gray-900">

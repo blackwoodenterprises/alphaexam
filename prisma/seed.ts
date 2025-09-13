@@ -218,7 +218,6 @@ async function main() {
       duration: 180, // 3 hours
       isActive: true,
       isFree: false,
-      category: 'OLYMPIAD',
       imageUrl: 'https://via.placeholder.com/400x200?text=Math+Olympiad',
       createdById: adminUser.id,
     },
@@ -232,7 +231,6 @@ async function main() {
       duration: 120, // 2 hours
       isActive: true,
       isFree: true,
-      category: 'JEE',
       imageUrl: 'https://via.placeholder.com/400x200?text=JEE+Physics',
       createdById: adminUser.id,
     },

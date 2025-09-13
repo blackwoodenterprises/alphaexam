@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { MathJax } from "@/components/ui/mathjax";
+import { Dropdown, SearchableDropdown } from "@/components/ui/dropdown";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Upload,
   FileImage,
@@ -17,6 +22,10 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  BookOpen,
+  BarChart3,
+  GraduationCap,
+  FileCheck,
 } from "lucide-react";
 
 interface Category {
@@ -31,49 +40,46 @@ interface Category {
 interface QuestionUploadModalProps {
   categories: Category[];
   children: React.ReactNode;
+  onQuestionCreated?: () => void;
 }
 
 interface ProcessingResponse {
-  message: string;
   success: boolean;
-  original_image_url: string;
-  processed_images: {
-    figures: Array<{
-      bbox: number[];
-      confidence: number;
-      url: string;
-    }>;
-    processed_image: string;
+  originalImageUrl: string;
+  processedImageUrl: string;
+  figures: Array<{
+    bbox: number[];
+    confidence: number;
+    url: string;
+  }>;
+  questionText: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
   };
-  transcription: {
-    figures_detected: number;
-    processing_status: string;
-    transcription: {
-      confidence: number;
-      figures: Array<{
-        description: string;
-        id: string;
-      }>;
-      options: {
-        A: string;
-        B: string;
-        C: string;
-        D: string;
-      };
-      question_text: string;
-    };
-  };
+  figuresDetected: number;
+  confidence: number;
+  figureDescriptions: Array<{
+    description: string;
+    id: string;
+  }>;
+  rawApiResponse: Record<string, unknown>;
 }
 
 export function QuestionUploadModal({
   categories,
   children,
+  onQuestionCreated,
 }: QuestionUploadModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1); // 1: Upload, 2: Processing, 3: Review, 4: Finalize
   const [uploading, setUploading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [processing, setProcessing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [processedData, setProcessedData] = useState<ProcessingResponse | null>(
@@ -85,6 +91,7 @@ export function QuestionUploadModal({
     class: 10,
     difficultyLevel: "MEDIUM",
     correctAnswer: "A",
+    status: "DRAFT",
     tags: "",
     explanation: "",
     adminNotes: "",
@@ -123,20 +130,16 @@ export function QuestionUploadModal({
   const processImage = async (imageUrl: string) => {
     setProcessing(true);
     try {
-      // Call the question processing API
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_QUESTION_API_URL ||
-          "https://questionbankapi.onrender.com/inference",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            image_url: imageUrl,
-          }),
-        }
-      );
+      // Call our internal processing API
+      const response = await fetch("/api/admin/process-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to process image");
@@ -154,28 +157,31 @@ export function QuestionUploadModal({
     }
   };
 
-  const handleSaveQuestion = async () => {
+  const handleSaveQuestion = async (status?: string) => {
     if (!processedData || !imageUrl) return;
+
+    const finalStatus = status || formData.status;
 
     try {
       const questionData = {
         imageUrl,
-        questionText: processedData.transcription.transcription.question_text,
-        optionA: processedData.transcription.transcription.options.A,
-        optionB: processedData.transcription.transcription.options.B,
-        optionC: processedData.transcription.transcription.options.C,
-        optionD: processedData.transcription.transcription.options.D,
+        questionText: processedData?.questionText || 'No question text available',
+        optionA: processedData?.options?.A || '',
+        optionB: processedData?.options?.B || '',
+        optionC: processedData?.options?.C || '',
+        optionD: processedData?.options?.D || '',
         correctAnswer: formData.correctAnswer,
         explanation: formData.explanation,
         adminNotes: formData.adminNotes,
         class: formData.class,
         difficultyLevel: formData.difficultyLevel,
+        status: finalStatus,
         tags: formData.tags
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
         apiResponse: processedData,
-        figures: processedData.processed_images.figures,
+        figures: processedData?.figures || [],
         categoryId: formData.categoryId,
         subcategoryId: formData.subcategoryId || null,
       };
@@ -194,7 +200,11 @@ export function QuestionUploadModal({
 
       // Success - close modal and refresh
       setIsOpen(false);
-      router.refresh();
+      if (onQuestionCreated) {
+        onQuestionCreated();
+      } else {
+        router.refresh();
+      }
       resetModal();
     } catch (error) {
       console.error("Save error:", error);
@@ -213,6 +223,7 @@ export function QuestionUploadModal({
       class: 10,
       difficultyLevel: "MEDIUM",
       correctAnswer: "A",
+      status: "DRAFT",
       tags: "",
       explanation: "",
       adminNotes: "",
@@ -228,7 +239,7 @@ export function QuestionUploadModal({
       <div onClick={() => setIsOpen(true)}>{children}</div>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               {/* Header */}
@@ -313,25 +324,24 @@ export function QuestionUploadModal({
                         id="image-upload"
                         disabled={uploading}
                       />
-                      <label htmlFor="image-upload">
-                        <Button
-                          type="button"
-                          disabled={uploading}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"
-                        >
-                          {uploading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4 mr-2" />
-                              Upload Image
-                            </>
-                          )}
-                        </Button>
-                      </label>
+                      <Button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Image
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -363,62 +373,78 @@ export function QuestionUploadModal({
               {step === 3 && processedData && (
                 <div className="space-y-6">
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Review Processed Question</CardTitle>
-                      <CardDescription>
-                        Review the AI-extracted content and make any necessary
-                        corrections.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Original Image */}
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Original Image
-                          </h4>
-                          <img
+                    <CardContent className="pt-6">
+                      <div className="space-y-4">
+                        {/* Original Image at Top */}
+                        <div className="bg-white p-3 rounded border">
+                          <Image
                             src={imageUrl}
                             alt="Question"
-                            className="w-full border rounded-lg"
+                            width={800}
+                            height={600}
+                            className="w-full max-w-2xl mx-auto h-auto rounded border"
                           />
                         </div>
 
-                        {/* Extracted Content */}
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Extracted Content
-                          </h4>
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Question Text
-                              </label>
-                              <div className="p-3 bg-gray-50 rounded border text-sm">
-                                {
-                                  processedData.transcription.transcription
-                                    .question_text
-                                }
-                              </div>
-                            </div>
+                        {/* Question Text */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="bg-white p-3 rounded border">
+                            <MathJax className="text-gray-900 leading-relaxed">
+                              {processedData?.questionText || 'No question text available'}
+                            </MathJax>
+                          </div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              {Object.entries(
-                                processedData.transcription.transcription
-                                  .options
-                              ).map(([key, value]) => (
-                                <div key={key}>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Option {key}
-                                  </label>
-                                  <div className="p-2 bg-gray-50 rounded border text-sm">
-                                    {value}
+                        {/* Options and Figures in Two Columns */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Options on Left */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <h5 className="text-sm font-semibold text-green-900 mb-2">Answer Options (Select Correct Answer)</h5>
+                            <div className="space-y-2">
+                              {Object.entries(processedData?.options || {}).map(([key, value]) => (
+                                <label key={key} className={`flex items-start space-x-3 p-3 border rounded cursor-pointer hover:bg-gray-50 ${
+                                  formData.correctAnswer === key ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'
+                                }`}>
+                                  <input
+                                    type="radio"
+                                    name="correctAnswer"
+                                    value={key}
+                                    checked={formData.correctAnswer === key}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, correctAnswer: e.target.value }))}
+                                    className="mt-1 text-green-600"
+                                  />
+                                  <div className="flex items-start flex-1">
+                                    <span className="font-semibold text-green-700 mr-2 flex-shrink-0">{key}.</span>
+                                    <MathJax className="flex-1">{String(value)}</MathJax>
                                   </div>
-                                </div>
+                                </label>
                               ))}
                             </div>
                           </div>
+
+                          {/* Figures on Right */}
+                          {processedData?.figures && processedData.figures.length > 0 && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                              <h5 className="text-sm font-semibold text-gray-900 mb-2">Figures Detected</h5>
+                              <div className="space-y-3">
+                                {processedData.figures.map((figure, index: number) => (
+                                  <div key={index} className="bg-white border rounded p-3">
+                                    <Image 
+                                      src={figure.url} 
+                                      alt={`Figure ${index + 1}`}
+                                      width={300}
+                                      height={200}
+                                      className="w-full h-auto rounded mb-2"
+                                    />
+
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
+
+
                       </div>
 
                       <div className="flex justify-end space-x-4 mt-6">
@@ -427,9 +453,10 @@ export function QuestionUploadModal({
                         </Button>
                         <Button
                           onClick={() => setStep(4)}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                          disabled={!formData.correctAnswer}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Looks Good - Continue
+                          {formData.correctAnswer ? 'Looks Good - Continue' : 'Select Correct Answer First'}
                         </Button>
                       </div>
                     </CardContent>
@@ -449,133 +476,113 @@ export function QuestionUploadModal({
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                             Category *
                           </label>
-                          <select
-                            value={formData.categoryId}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                categoryId: e.target.value,
-                                subcategoryId: "",
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            required
-                          >
-                            <option value="">Select Category</option>
-                            {categories.map((cat) => (
-                              <option key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </option>
-                            ))}
-                          </select>
+                          <SearchableDropdown
+                              options={categories.map((cat) => ({
+                                value: cat.id,
+                                label: cat.name,
+                                icon: BookOpen,
+                              }))}
+                              value={formData.categoryId}
+                              onChange={(value) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  categoryId: value as string,
+                                  subcategoryId: "",
+                                }))
+                              }
+                              placeholder="Select Category"
+                              searchPlaceholder="Search categories..."
+                              className="w-full"
+                            />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                             Subcategory
                           </label>
-                          <select
-                            value={formData.subcategoryId}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                subcategoryId: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            disabled={!selectedCategory}
-                          >
-                            <option value="">Select Subcategory</option>
-                            {selectedCategory?.subcategories.map((subcat) => (
-                              <option key={subcat.id} value={subcat.id}>
-                                {subcat.name}
-                              </option>
-                            ))}
-                          </select>
+                          <SearchableDropdown
+                             options={selectedCategory?.subcategories.map((subcat) => ({
+                               value: subcat.id,
+                               label: subcat.name,
+                               icon: FileCheck,
+                             })) || []}
+                             value={formData.subcategoryId}
+                             onChange={(value) =>
+                               setFormData((prev) => ({
+                                 ...prev,
+                                 subcategoryId: value as string,
+                               }))
+                             }
+                             placeholder="Select Subcategory"
+                             searchPlaceholder="Search subcategories..."
+                             disabled={!selectedCategory}
+                             className="w-full"
+                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                               Class *
                             </label>
-                            <select
-                              value={formData.class}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  class: parseInt(e.target.value),
-                                }))
-                              }
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                              required
-                            >
-                              {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                                (cls) => (
-                                  <option key={cls} value={cls}>
-                                    Class {cls}
-                                  </option>
-                                )
-                              )}
-                            </select>
+                            <SearchableDropdown
+                               options={Array.from({ length: 12 }, (_, i) => i + 1).map(
+                                 (cls) => ({
+                                   value: cls.toString(),
+                                   label: `Class ${cls}`,
+                                   icon: GraduationCap,
+                                 })
+                               )}
+                               value={formData.class.toString()}
+                               onChange={(value) =>
+                                 setFormData((prev) => ({
+                                   ...prev,
+                                   class: parseInt(value as string),
+                                 }))
+                               }
+                               placeholder="Select Class"
+                               searchPlaceholder="Search classes..."
+                               className="w-full"
+                             />
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                               Difficulty *
                             </label>
-                            <select
-                              value={formData.difficultyLevel}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  difficultyLevel: e.target.value,
-                                }))
-                              }
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                              required
-                            >
-                              <option value="EASY">Easy</option>
-                              <option value="MEDIUM">Medium</option>
-                              <option value="HARD">Hard</option>
-                              <option value="EXPERT">Expert</option>
-                            </select>
+                            <Dropdown
+                               options={[
+                                 { value: "EASY", label: "Easy", icon: BarChart3 },
+                                 { value: "MEDIUM", label: "Medium", icon: BarChart3 },
+                                 { value: "HARD", label: "Hard", icon: BarChart3 },
+                                 { value: "EXPERT", label: "Expert", icon: BarChart3 },
+                               ]}
+                               value={formData.difficultyLevel}
+                               onChange={(value) =>
+                                 setFormData((prev) => ({
+                                   ...prev,
+                                   difficultyLevel: value as string,
+                                 }))
+                               }
+                               placeholder="Select Difficulty"
+                               searchable={false}
+                               className="w-full"
+                             />
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Correct Answer *
-                          </label>
-                          <select
-                            value={formData.correctAnswer}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                correctAnswer: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            required
-                          >
-                            <option value="A">Option A</option>
-                            <option value="B">Option B</option>
-                            <option value="C">Option C</option>
-                            <option value="D">Option D</option>
-                          </select>
-                        </div>
+
+
+
                       </div>
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tags (comma-separated)
-                          </label>
-                          <input
-                            type="text"
+                          <Input
+                            label="Tags (comma-separated)"
                             value={formData.tags}
                             onChange={(e) =>
                               setFormData((prev) => ({
@@ -584,59 +591,58 @@ export function QuestionUploadModal({
                               }))
                             }
                             placeholder="algebra, quadratic, factoring"
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Explanation
-                          </label>
-                          <textarea
-                            value={formData.explanation}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                explanation: e.target.value,
-                              }))
-                            }
-                            placeholder="Detailed explanation of the solution..."
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
+                        <Textarea
+                          label="Explanation"
+                          value={formData.explanation}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              explanation: e.target.value,
+                            }))
+                          }
+                          placeholder="Detailed explanation of the solution..."
+                          rows={3}
+                        />
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Admin Notes
-                          </label>
-                          <textarea
-                            value={formData.adminNotes}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                adminNotes: e.target.value,
-                              }))
-                            }
+                        <Textarea
+                          label="Admin Notes"
+                          value={formData.adminNotes}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              adminNotes: e.target.value,
+                            }))
+                          }
                             placeholder="Internal notes for admins..."
                             rows={2}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
                           />
-                        </div>
                       </div>
                     </div>
 
-                    <div className="flex justify-end space-x-4 mt-6">
+                    <div className="flex justify-between items-center mt-6">
                       <Button variant="outline" onClick={() => setStep(3)}>
                         Back to Review
                       </Button>
-                      <Button
-                        onClick={handleSaveQuestion}
-                        disabled={!formData.categoryId}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                      >
-                        Save Question
-                      </Button>
+                      <div className="flex space-x-3">
+                        <Button
+                          onClick={() => handleSaveQuestion('DRAFT')}
+                          disabled={!formData.categoryId}
+                          variant="outline"
+                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Save as Draft
+                        </Button>
+                        <Button
+                          onClick={() => handleSaveQuestion('PUBLISHED')}
+                          disabled={!formData.categoryId}
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                        >
+                          Save & Publish
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

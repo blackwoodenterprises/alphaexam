@@ -1,8 +1,11 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AdminHeader } from "@/components/admin/admin-header";
-import { prisma } from "@/lib/prisma";
+import { PageLoading } from "@/components/ui/spinner";
+
 import {
   FolderTree,
   Plus,
@@ -13,95 +16,114 @@ import {
   BookOpen,
   Tag,
   MoreHorizontal,
-  BarChart3,
 } from "lucide-react";
 import { CategoryCreateModal } from "@/components/admin/category-create-modal";
 
-async function getCategoriesData() {
-  try {
-    const [categories, subcategories, questionsCount] = await Promise.all([
-      prisma.category.findMany({
-        include: {
-          subcategories: {
-            include: {
-              _count: {
-                select: {
-                  questions: true,
-                },
-              },
-            },
-          },
-          _count: {
-            select: {
-              questions: true,
-              subcategories: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.subcategory.count(),
-      prisma.question.count(),
-    ]);
-
-    return { categories, subcategories, questionsCount };
-  } catch (error) {
-    console.error("Error fetching categories data:", error);
-    return { categories: [], subcategories: 0, questionsCount: 0 };
-  }
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  subcategories: Subcategory[];
+  _count: { questions: number; subcategories: number };
 }
 
-export default async function CategoriesPage() {
-  const { categories, subcategories, questionsCount } =
-    await getCategoriesData();
+interface Subcategory {
+  id: string;
+  name: string;
+  description: string | null;
+  _count: { questions: number };
+}
 
-  const stats = [
+
+
+export default function CategoriesPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState(0);
+  const [questionsCount, setQuestionsCount] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    defaultType: "MAIN" | "SUB";
+    parentCategoryId?: string;
+  }>({ defaultType: "MAIN" });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/admin/categories');
+      if (response.ok) {
+        const categories = await response.json();
+        setCategories(categories);
+        
+        // Calculate stats from the categories data
+        const totalSubcategories = categories.reduce((sum: number, cat: Category) => sum + cat._count.subcategories, 0);
+        const totalQuestions = categories.reduce((sum: number, cat: Category) => sum + cat._count.questions, 0);
+        
+        setSubcategories(totalSubcategories);
+        setQuestionsCount(totalQuestions);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openSubcategoryModal = (parentCategoryId: string) => {
+    setModalConfig({
+      defaultType: "SUB",
+      parentCategoryId,
+    });
+    setIsModalOpen(true);
+  };
+
+  const statsData = [
     {
-      title: "Total Categories",
-      value: categories.length,
-      icon: FolderTree,
+      title: "Total Questions",
+      value: questionsCount,
+      icon: BookOpen,
       color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      bgColor: "bg-blue-50",
     },
     {
-      title: "Total Subcategories",
+      title: "Categories",
+      value: categories.length,
+      icon: FolderTree,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+    {
+      title: "Subcategories",
       value: subcategories,
       icon: Tag,
       color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    {
-      title: "Questions Organized",
-      value: questionsCount,
-      icon: BookOpen,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-    },
-    {
-      title: "Avg Questions/Category",
-      value:
-        categories.length > 0
-          ? Math.round(questionsCount / categories.length)
-          : 0,
-      icon: BarChart3,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      bgColor: "bg-green-50",
     },
   ];
 
+  if (loading) {
+    return <PageLoading text="Loading categories..." />;
+  }
+
   return (
-    <div className="space-y-6">
-      <AdminHeader
-        user={{
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@alphaexam.com"
-        }}
-      />
+    <div className="space-y-8">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
+            <p className="text-gray-600 mt-1">
+              Organize your questions into categories and subcategories
+            </p>
+          </div>
+        </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {statsData.map((stat, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -138,7 +160,12 @@ export default async function CategoriesPage() {
             <span>Filter</span>
           </Button>
         </div>
-        <CategoryCreateModal />
+        <CategoryCreateModal 
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          defaultType={modalConfig.defaultType}
+          parentCategoryId={modalConfig.parentCategoryId}
+        />
       </div>
 
       {/* Categories List */}
@@ -154,7 +181,12 @@ export default async function CategoriesPage() {
                 Start organizing your questions by creating categories and
                 subcategories.
               </p>
-              <CategoryCreateModal />
+              <CategoryCreateModal 
+                isOpen={isModalOpen}
+                onOpenChange={setIsModalOpen}
+                defaultType={modalConfig.defaultType}
+                parentCategoryId={modalConfig.parentCategoryId}
+              />
             </CardContent>
           </Card>
         ) : (
@@ -232,6 +264,7 @@ export default async function CategoriesPage() {
                       variant="outline"
                       size="sm"
                       className="w-full mt-3 text-purple-600 border-purple-200 hover:bg-purple-50"
+                      onClick={() => openSubcategoryModal(category.id)}
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add Subcategory
@@ -247,6 +280,7 @@ export default async function CategoriesPage() {
                       variant="outline"
                       size="sm"
                       className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                      onClick={() => openSubcategoryModal(category.id)}
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add First Subcategory

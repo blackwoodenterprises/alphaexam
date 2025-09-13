@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
-      category,
+      examCategoryId,
       duration,
+      questionsToServe,
       price,
       isFree,
       isActive,
@@ -21,13 +22,17 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!title || !category || !duration) {
+    if (!title || !examCategoryId || !duration) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate category
-    if (!['OLYMPIAD', 'JEE', 'NEET', 'OTHER'].includes(category)) {
-      return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
+    // Validate exam category exists
+    const examCategory = await prisma.examCategory.findUnique({
+      where: { id: examCategoryId }
+    });
+
+    if (!examCategory) {
+      return NextResponse.json({ error: 'Invalid exam category' }, { status: 400 });
     }
 
     // Create exam
@@ -35,8 +40,9 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description: description || null,
-        category,
+        examCategoryId,
         duration: parseInt(duration),
+        questionsToServe: questionsToServe ? parseInt(questionsToServe) : null,
         price: isFree ? 0 : parseFloat(price),
         isFree: Boolean(isFree),
         isActive: Boolean(isActive),
@@ -66,7 +72,7 @@ export async function POST(request: NextRequest) {
       exam: {
         id: exam.id,
         title: exam.title,
-        category: exam.category,
+        examCategoryId: exam.examCategoryId,
         duration: exam.duration,
         price: exam.price,
         isFree: exam.isFree,

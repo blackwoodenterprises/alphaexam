@@ -33,35 +33,36 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phoneNumber, preferredExams, academicLevel, goals } = body;
+    const { phoneNumber, dateOfBirth, preferredExams, academicLevel, goals } = body;
 
-    console.log('Onboarding data:', { phoneNumber, preferredExams, academicLevel, goals });
+    console.log('Onboarding data:', { phoneNumber, dateOfBirth, preferredExams, academicLevel, goals });
 
-    // Update or create user in our database
-    const user = await prisma.user.upsert({
+    // Check if user exists in our database
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!existingUser) {
+      console.log('User not found in database, they should have been created on first sign-in');
+      return NextResponse.json({ 
+        error: 'User not found. Please sign out and sign in again.',
+        code: 'USER_NOT_FOUND'
+      }, { status: 404 });
+    }
+
+    // Update existing user with onboarding data
+    const user = await prisma.user.update({
       where: { clerkId: userId },
-      update: {
+      data: {
         phoneNumber,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         preferredExams,
         academicLevel,
         goals,
         onboardingComplete: true,
-        firstName: clerkUser.firstName || '',
-        lastName: clerkUser.lastName || '',
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
-      },
-      create: {
-        clerkId: userId,
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
-        firstName: clerkUser.firstName || '',
-        lastName: clerkUser.lastName || '',
-        phoneNumber,
-        preferredExams,
-        academicLevel,
-        goals,
-        onboardingComplete: true,
-        role: 'STUDENT',
-        credits: 10, // Give new users some free credits
+        firstName: clerkUser.firstName || existingUser.firstName,
+        lastName: clerkUser.lastName || existingUser.lastName,
+        email: clerkUser.emailAddresses[0]?.emailAddress || existingUser.email,
       },
     });
 

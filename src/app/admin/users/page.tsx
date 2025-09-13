@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AdminHeader } from "@/components/admin/admin-header";
+
 import { prisma } from "@/lib/prisma";
 import {
   Users,
@@ -32,7 +32,11 @@ async function getUsersData() {
                 exam: {
                   select: {
                     title: true,
-                    category: true,
+                    examCategory: {
+                      select: {
+                        name: true,
+                      },
+                    },
                   },
                 },
               },
@@ -154,14 +158,6 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        user={{
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@alphaexam.com"
-        }}
-      />
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (

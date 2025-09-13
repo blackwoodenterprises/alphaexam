@@ -289,36 +289,6 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-          <CardDescription>
-            Current system health and performance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">99.9%</div>
-              <div className="text-sm text-gray-500">Uptime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">1.2s</div>
-              <div className="text-sm text-gray-500">Avg Response</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">45ms</div>
-              <div className="text-sm text-gray-500">DB Query Time</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">12GB</div>
-              <div className="text-sm text-gray-500">Storage Used</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

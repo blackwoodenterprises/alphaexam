@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     phoneNumber: "",
+    dateOfBirth: "",
     preferredExams: [] as string[],
     academicLevel: "",
     goals: "",
@@ -77,11 +78,29 @@ export default function OnboardingPage() {
         throw new Error("Authentication test failed: " + authTestData.error);
       }
 
+      // Ensure user exists in our database first
+      console.log("Ensuring user exists in database...");
+      const userEnsureResponse = await fetch("/api/user/ensure-exists", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const userEnsureData = await userEnsureResponse.json();
+      console.log("User ensure response:", userEnsureData);
+
+      if (!userEnsureResponse.ok) {
+        throw new Error(userEnsureData.error || "Failed to ensure user exists");
+      }
+
       // Update user metadata or create user profile in database
       await user?.update({
         unsafeMetadata: {
           ...user.unsafeMetadata,
           phoneNumber: formData.phoneNumber,
+          dateOfBirth: formData.dateOfBirth,
           preferredExams: formData.preferredExams,
           academicLevel: formData.academicLevel,
           goals: formData.goals,
@@ -89,7 +108,7 @@ export default function OnboardingPage() {
         },
       });
 
-      // Create or update user in our database
+      // Now call onboarding API to update user with onboarding data
       console.log("Calling onboarding API...");
       const response = await fetch("/api/user/onboarding", {
         method: "POST",
@@ -157,10 +176,30 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  value={formData.dateOfBirth}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateOfBirth: e.target.value,
+                    }))
+                  }
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This helps us provide age-appropriate content
+                </p>
+              </div>
+
               <Button
                 onClick={() => setStep(2)}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                disabled={!formData.phoneNumber}
+                disabled={!formData.phoneNumber || !formData.dateOfBirth}
               >
                 Continue
                 <ArrowRight className="w-4 h-4 ml-2" />

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 
@@ -114,9 +115,11 @@ export function TestimonialsSection() {
 
                 {/* User info */}
                 <div className="flex items-center">
-                  <img
+                  <Image
                     src={testimonial.image}
                     alt={testimonial.name}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full mr-4"
                   />
                   <div>

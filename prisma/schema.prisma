@@ -18,6 +18,7 @@ model User {
   firstName          String?
   lastName           String?
   phoneNumber        String?
+  dateOfBirth        DateTime? // User's date of birth
   preferredExams     String[] // Array of exam types user is interested in
   academicLevel      String? // User's current academic level
   goals              String? // User's study goals
@@ -86,6 +87,7 @@ model Question {
   adminNotes      String? // Internal admin notes
   class           Int // Grade/Standard (1-12, etc.)
   difficultyLevel DifficultyLevel
+  status          QuestionStatus @default(DRAFT) // Question publication status
   tags            String[] // Array of tags for better searchability
   apiResponse     Json // Full JSON response from the question processing API
   figures         Json? // Processed figures/diagrams from the question
@@ -116,22 +118,43 @@ enum DifficultyLevel {
   EXPERT
 }
 
-// Exam model - represents mock tests
-model Exam {
+enum QuestionStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// ExamCategory model for organizing exams
+model ExamCategory {
   id          String   @id @default(cuid())
-  title       String
+  name        String   @unique
   description String?
-  price       Float    @default(0.0) // Price in credits
-  duration    Int // Duration in minutes
-  isActive    Boolean  @default(true)
-  isFree      Boolean  @default(false)
-  category    ExamType @default(OLYMPIAD)
-  imageUrl    String? // Exam cover image
-  createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relationships
+  exams Exam[]
+
+  @@map("exam_categories")
+}
+
+// Exam model - represents mock tests
+model Exam {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  price          Float    @default(0.0) // Price in credits
+  duration       Int // Duration in minutes
+  questionsToServe Int?   // Number of questions to serve to end users
+  isActive       Boolean  @default(true)
+  isFree         Boolean  @default(false)
+  examCategoryId String?
+  imageUrl       String? // Exam cover image
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  examCategory  ExamCategory?  @relation(fields: [examCategoryId], references: [id])
   createdBy     User           @relation("ExamCreator", fields: [createdById], references: [id])
   examQuestions ExamQuestion[]
   examAttempts  ExamAttempt[]
@@ -139,12 +162,7 @@ model Exam {
   @@map("exams")
 }
 
-enum ExamType {
-  OLYMPIAD
-  JEE
-  NEET
-  OTHER
-}
+
 
 // Junction table for Exam-Question relationship with specific marks
 model ExamQuestion {

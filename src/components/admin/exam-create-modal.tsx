@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { X, GraduationCap, Plus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dropdown } from "@/components/ui/dropdown";
+import { X } from "lucide-react";
+
+interface ExamCategory {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
 interface ExamCreateModalProps {
   children: React.ReactNode;
@@ -19,20 +28,39 @@ interface ExamCreateModalProps {
 export function ExamCreateModal({ children }: ExamCreateModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(1); // 1: Basic Info, 2: Add Questions, 3: Settings
+  const [step, setStep] = useState(1); // 1: Basic Info, 2: Settings
   const [loading, setLoading] = useState(false);
+  const [examCategories, setExamCategories] = useState<ExamCategory[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "OLYMPIAD",
+    examCategoryId: "",
     duration: 60,
+    questionsToServe: "",
     price: 0,
     isFree: true,
     isActive: true,
     imageUrl: "",
   });
 
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  // Fetch exam categories
+  const fetchExamCategories = async () => {
+    try {
+      const response = await fetch("/api/admin/exam-categories");
+      if (response.ok) {
+        const categories = await response.json();
+        setExamCategories(categories);
+      }
+    } catch (error) {
+      console.error("Error fetching exam categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchExamCategories();
+    }
+  }, [isOpen]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -43,10 +71,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          ...formData,
-          questionIds: selectedQuestions,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -70,14 +95,14 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
     setFormData({
       title: "",
       description: "",
-      category: "OLYMPIAD",
+      examCategoryId: "",
       duration: 60,
+      questionsToServe: "",
       price: 0,
       isFree: true,
       isActive: true,
       imageUrl: "",
     });
-    setSelectedQuestions([]);
   };
 
   return (
@@ -85,7 +110,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
       <div onClick={() => setIsOpen(true)}>{children}</div>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               {/* Header */}
@@ -109,8 +134,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
               <div className="flex items-center justify-center space-x-4 mb-8">
                 {[
                   { step: 1, label: "Basic Info" },
-                  { step: 2, label: "Add Questions" },
-                  { step: 3, label: "Settings" },
+                  { step: 2, label: "Settings" },
                 ].map(({ step: stepNum, label }) => (
                   <div key={stepNum} className="flex items-center">
                     <div
@@ -125,7 +149,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                     <span className="ml-2 text-sm font-medium text-gray-700">
                       {label}
                     </span>
-                    {stepNum < 3 && (
+                    {stepNum < 2 && (
                       <div className="w-8 h-px bg-gray-300 ml-4" />
                     )}
                   </div>
@@ -143,159 +167,83 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Exam Title *
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.title}
-                          onChange={(e) =>
+                      <div className="grid grid-cols-3 gap-4">
+                        <Dropdown
+                          label="Exam Category"
+                          value={formData.examCategoryId}
+                          onChange={(value) =>
                             setFormData((prev) => ({
                               ...prev,
-                              title: e.target.value,
+                              examCategoryId: value as string,
                             }))
                           }
-                          placeholder="e.g., JEE Main Mock Test 2024"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          options={examCategories.map((category) => ({
+                            value: category.id,
+                            label: category.name,
+                          }))}
+                          placeholder="Select a category"
                           required
                         />
-                      </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Description
-                        </label>
-                        <textarea
-                          value={formData.description}
+                        <Input
+                          label="Duration (minutes)"
+                          type="number"
+                          value={formData.duration.toString()}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              description: e.target.value,
+                              duration: parseInt(e.target.value) || 0,
                             }))
                           }
-                          placeholder="Describe what this exam covers..."
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          min="1"
+                          required
+                        />
+
+                        <Input
+                          label="Questions to Serve"
+                          type="number"
+                          value={formData.questionsToServe}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              questionsToServe: e.target.value,
+                            }))
+                          }
+                          min="1"
+                          placeholder="Number of questions for users"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Category *
-                          </label>
-                          <select
-                            value={formData.category}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                category: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            required
-                          >
-                            <option value="OLYMPIAD">
-                              Mathematical Olympiad
-                            </option>
-                            <option value="JEE">JEE Main/Advanced</option>
-                            <option value="NEET">NEET</option>
-                            <option value="OTHER">Other</option>
-                          </select>
-                        </div>
+                      <Input
+                        label="Exam Title"
+                        value={formData.title}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
+                        placeholder="e.g., JEE Main Mock Test 2024"
+                        required
+                      />
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Duration (minutes) *
-                          </label>
-                          <input
-                            type="number"
-                            value={formData.duration}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                duration: parseInt(e.target.value),
-                              }))
-                            }
-                            min="1"
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            required
-                          />
-                        </div>
-                      </div>
+                      <Textarea
+                        label="Description"
+                        value={formData.description}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                        placeholder="Describe what this exam covers..."
+                        rows={3}
+                      />
 
                       <div className="flex justify-end">
                         <Button
                           onClick={() => setStep(2)}
-                          disabled={!formData.title || !formData.category}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                        >
-                          Next: Add Questions
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {step === 2 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Add Questions</CardTitle>
-                    <CardDescription>
-                      Select questions for this exam from your question bank
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* Search and Filters */}
-                      <div className="flex gap-4">
-                        <div className="flex-1 relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            placeholder="Search questions..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                        <select className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500">
-                          <option value="">All Categories</option>
-                          <option value="algebra">Algebra</option>
-                          <option value="geometry">Geometry</option>
-                          <option value="calculus">Calculus</option>
-                        </select>
-                      </div>
-
-                      {/* Selected Questions Count */}
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-purple-900 mb-2">
-                          Selected Questions: {selectedQuestions.length}
-                        </h4>
-                        <p className="text-sm text-purple-700">
-                          Add questions to build your exam. Each question can
-                          have different marks and negative marking.
-                        </p>
-                      </div>
-
-                      {/* Placeholder for question selection */}
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Question Selection Coming Soon
-                        </h3>
-                        <p className="text-gray-600">
-                          This will show your question bank with checkboxes to
-                          select questions for the exam.
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setStep(1)}>
-                          Back
-                        </Button>
-                        <Button
-                          onClick={() => setStep(3)}
+                          disabled={!formData.title || !formData.examCategoryId}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                           Next: Settings
@@ -306,7 +254,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                 </Card>
               )}
 
-              {step === 3 && (
+              {step === 2 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Exam Settings</CardTitle>
@@ -337,24 +285,19 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                         </label>
 
                         {!formData.isFree && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Price (Credits)
-                            </label>
-                            <input
-                              type="number"
-                              value={formData.price}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  price: parseFloat(e.target.value),
-                                }))
-                              }
-                              min="0"
-                              step="0.1"
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
-                            />
-                          </div>
+                          <Input
+                            label="Price (Credits)"
+                            type="number"
+                            value={formData.price.toString()}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                price: parseFloat(e.target.value) || 0,
+                              }))
+                            }
+                            min="0"
+                            step="0.1"
+                          />
                         )}
                       </div>
 
@@ -379,7 +322,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                       </div>
 
                       <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setStep(2)}>
+                        <Button variant="outline" onClick={() => setStep(1)}>
                           Back
                         </Button>
                         <Button

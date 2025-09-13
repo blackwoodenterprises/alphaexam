@@ -27,6 +27,11 @@ async function getPublicExams() {
         isActive: true,
       },
       include: {
+        examCategory: {
+          select: {
+            name: true,
+          },
+        },
         _count: {
           select: {
             examQuestions: true,
@@ -226,13 +231,13 @@ export default async function ExamsPage() {
                       <div className="flex items-center justify-between mb-2">
                         <span
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                            exam.category
+                            exam.examCategory?.name || 'Unknown'
                           )}`}
                         >
                           <span className="mr-1">
-                            {getCategoryIcon(exam.category)}
+                            {getCategoryIcon(exam.examCategory?.name || 'Unknown')}
                           </span>
-                          {exam.category}
+                          {exam.examCategory?.name || 'Unknown'}
                         </span>
                         {exam.isFree ? (
                           <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">

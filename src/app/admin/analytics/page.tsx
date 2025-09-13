@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { prisma } from "@/lib/prisma";
 import {
   BarChart3,
@@ -55,7 +54,7 @@ async function getAnalyticsData() {
 
       // Category performance
       prisma.exam.groupBy({
-        by: ["category"],
+        by: ["examCategoryId"],
         _count: {
           id: true,
         },
@@ -182,14 +181,6 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        user={{
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@alphaexam.com"
-        }}
-      />
-
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {mainStats.map((stat, index) => (

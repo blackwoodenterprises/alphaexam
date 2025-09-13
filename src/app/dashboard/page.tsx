@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { createOrUpdateUser } from "@/lib/auth";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import {
@@ -28,8 +29,9 @@ async function getUserData() {
     redirect("/sign-in");
   }
 
+  let user;
   try {
-    const user = await prisma.user.findUnique({
+    user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
         examAttempts: {
@@ -39,7 +41,6 @@ async function getUserData() {
             exam: {
               select: {
                 title: true,
-                category: true,
               },
             },
           },
@@ -53,22 +54,29 @@ async function getUserData() {
         },
       },
     });
-
-    if (!user) {
-      // User exists in Clerk but not in our database, redirect to onboarding
-      redirect("/onboarding");
-    }
-
-    if (!user.onboardingComplete) {
-      // User exists but hasn't completed onboarding
-      redirect("/onboarding");
-    }
-
-    return user;
   } catch (error) {
     console.error("Error fetching user data:", error);
     redirect("/onboarding");
   }
+
+  if (!user) {
+    // User exists in Clerk but not in our database, create user first
+    try {
+      await createOrUpdateUser();
+      // User created successfully, redirect to onboarding
+      redirect("/onboarding");
+    } catch (error) {
+      console.error('Error creating user:', error);
+      redirect("/onboarding");
+    }
+  }
+
+  if (!user.onboardingComplete) {
+    // User exists but hasn't completed onboarding
+    redirect("/onboarding");
+  }
+
+  return user;
 }
 
 export default async function UserDashboard() {
@@ -185,7 +193,7 @@ export default async function UserDashboard() {
                       >
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                            {attempt.exam.category.charAt(0)}
+                            {attempt.exam.title.charAt(0)}
                           </div>
                           <div>
                             <div className="font-medium text-gray-900">

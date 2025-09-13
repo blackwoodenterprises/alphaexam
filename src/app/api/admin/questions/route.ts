@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       adminNotes,
       class: questionClass,
       difficultyLevel,
+      status = 'DRAFT', // Default to DRAFT if not provided
       tags,
       apiResponse,
       figures,
@@ -42,6 +43,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid difficulty level' }, { status: 400 });
     }
 
+    // Validate status
+    if (!['DRAFT', 'PUBLISHED'].includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    }
+
     // Create question
     const question = await prisma.question.create({
       data: {
@@ -56,6 +62,7 @@ export async function POST(request: NextRequest) {
         adminNotes: adminNotes || null,
         class: parseInt(questionClass),
         difficultyLevel,
+        status,
         tags: Array.isArray(tags) ? tags : [],
         apiResponse: apiResponse || {},
         figures: figures || null,

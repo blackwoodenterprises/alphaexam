@@ -1,19 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dropdown } from "@/components/ui/dropdown";
 import { Plus, X, FolderTree, Save } from "lucide-react";
 
-export function CategoryCreateModal() {
-  const [isOpen, setIsOpen] = useState(false);
+interface CategoryCreateModalProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  defaultType?: "MAIN" | "SUB";
+  parentCategoryId?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+export function CategoryCreateModal({ 
+  isOpen: externalIsOpen, 
+  onOpenChange, 
+  defaultType = "MAIN",
+  parentCategoryId 
+}: CategoryCreateModalProps = {}) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "MAIN" as "MAIN" | "SUB",
-    parentCategory: "",
+    type: defaultType,
+    parentCategory: parentCategoryId || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Fetch categories for parent category dropdown
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/admin/categories");
+      if (response.ok) {
+        const categoriesData = await response.json();
+        setCategories(categoriesData);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +76,8 @@ export function CategoryCreateModal() {
         setFormData({
           name: "",
           description: "",
-          type: "MAIN",
-          parentCategory: "",
+          type: defaultType,
+          parentCategory: parentCategoryId || "",
         });
         setIsOpen(false);
         // Refresh the page to show new category
@@ -49,14 +92,19 @@ export function CategoryCreateModal() {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleDropdownChange = (name: string, value: string | string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: Array.isArray(value) ? value[0] || "" : value,
     }));
   };
 
@@ -73,7 +121,7 @@ export function CategoryCreateModal() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
@@ -93,86 +141,49 @@ export function CategoryCreateModal() {
         </CardHeader>
         <CardContent className="pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Category Name *
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="e.g., Mathematics, Physics"
-              />
-            </div>
+            <Input
+              label="Category Name"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="e.g., Mathematics, Physics"
+            />
 
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-vertical"
-                placeholder="Brief description of this category..."
-              />
-            </div>
+            <Textarea
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows={3}
+              placeholder="Brief description of this category..."
+            />
 
-            <div>
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Category Type *
-              </label>
-              <select
-                id="type"
-                name="type"
-                required
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-              >
-                <option value="MAIN">Main Category</option>
-                <option value="SUB">Subcategory</option>
-              </select>
-            </div>
+            <Dropdown
+              label="Category Type"
+              required
+              value={formData.type}
+              onChange={(value) => handleDropdownChange("type", value)}
+              options={[
+                { value: "MAIN", label: "Main Category" },
+                { value: "SUB", label: "Subcategory" },
+              ]}
+              placeholder="Select category type"
+              searchable={false}
+            />
 
             {formData.type === "SUB" && (
-              <div>
-                <label
-                  htmlFor="parentCategory"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Parent Category *
-                </label>
-                <select
-                  id="parentCategory"
-                  name="parentCategory"
-                  required
-                  value={formData.parentCategory}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-                >
-                  <option value="">Select a parent category</option>
-                  {/* This would be populated with existing categories */}
-                  <option value="mathematics">Mathematics</option>
-                  <option value="physics">Physics</option>
-                  <option value="chemistry">Chemistry</option>
-                </select>
-              </div>
+              <Dropdown
+                label="Parent Category"
+                required
+                value={formData.parentCategory}
+                onChange={(value) => handleDropdownChange("parentCategory", value)}
+                options={categories.map((category) => ({
+                  value: category.id,
+                  label: category.name,
+                }))}
+                placeholder="Select a parent category"
+              />
             )}
 
             <div className="flex space-x-3 pt-4">

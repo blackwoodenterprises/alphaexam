@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AdminHeader } from "@/components/admin/admin-header";
+import { Input } from "@/components/ui/input";
 import {
   Settings,
   Database,
@@ -197,14 +197,6 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        user={{
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@alphaexam.com"
-        }}
-      />
-
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-4">
         <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
@@ -354,14 +346,11 @@ function SettingItem({ setting }: { setting: Setting }) {
   if (setting.type === "password") {
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {setting.label}
-        </label>
         <div className="relative">
-          <input
+          <Input
+            label={setting.label}
             type="password"
             value={String(setting.value)}
-            className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             readOnly
           />
           <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -374,13 +363,11 @@ function SettingItem({ setting }: { setting: Setting }) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {setting.label}
-      </label>
-      <input
+      <Input
+        label={setting.label}
         type={setting.type}
         value={String(setting.value)}
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        readOnly
       />
     </div>
   );

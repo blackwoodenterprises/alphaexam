@@ -51,11 +51,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <script
-            type="text/javascript"
-            async
-            src="https://polyfill.io/v3/polyfill.min.js?features=es6"
-          />
+
           <script
             type="text/javascript"
             id="MathJax-script"
@@ -68,13 +64,19 @@ export default function RootLayout({
               __html: `
                 window.MathJax = {
                   tex: {
-                    inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                    displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
                     processEscapes: true,
                     processEnvironments: true
                   },
                   options: {
                     skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+                  },
+                  startup: {
+                    ready: () => {
+                      console.log('MathJax is loaded and ready.');
+                      window.MathJax.startup.defaultReady();
+                    }
                   }
                 };
               `,
