@@ -58,6 +58,11 @@ async function getAnalyticsData() {
         _count: {
           id: true,
         },
+        where: {
+          examCategoryId: {
+            not: null,
+          },
+        },
       }),
 
       // Monthly stats for the last 6 months
