@@ -68,9 +68,9 @@ async function getDashboardStats() {
         where: { status: "COMPLETED" },
       }),
       prisma.examAttempt.count({
-        where: { 
+        where: {
           status: "COMPLETED",
-          percentage: { gte: 60 } // Assuming 60% is passing score
+          percentage: { gte: 60 }, // Assuming 60% is passing score
         },
       }),
       // Last month users for growth calculation
@@ -127,45 +127,55 @@ async function getDashboardStats() {
     });
 
     // Calculate success rate
-    const successRate = completedExamAttempts > 0 
-      ? ((passedExamAttempts / completedExamAttempts) * 100).toFixed(1)
-      : "0.0";
+    const successRate =
+      completedExamAttempts > 0
+        ? ((passedExamAttempts / completedExamAttempts) * 100).toFixed(1)
+        : "0.0";
 
     // Calculate average duration from completed exams
     const completedAttemptsWithDuration = await prisma.examAttempt.findMany({
       where: {
         status: "COMPLETED",
-        endTime: { not: null }
+        endTime: { not: null },
       },
       select: {
         startTime: true,
-        endTime: true
-      }
+        endTime: true,
+      },
     });
 
-    const avgDuration = completedAttemptsWithDuration.length > 0
-      ? Math.round(
-          completedAttemptsWithDuration.reduce((sum, attempt) => {
-            const duration = attempt.endTime && attempt.startTime 
-              ? (attempt.endTime.getTime() - attempt.startTime.getTime()) / (1000 * 60) // Convert to minutes
-              : 0;
-            return sum + duration;
-          }, 0) / completedAttemptsWithDuration.length
-        )
-      : 0;
+    const avgDuration =
+      completedAttemptsWithDuration.length > 0
+        ? Math.round(
+            completedAttemptsWithDuration.reduce((sum, attempt) => {
+              const duration =
+                attempt.endTime && attempt.startTime
+                  ? (attempt.endTime.getTime() - attempt.startTime.getTime()) /
+                    (1000 * 60) // Convert to minutes
+                  : 0;
+              return sum + duration;
+            }, 0) / completedAttemptsWithDuration.length
+          )
+        : 0;
 
     // Calculate growth rates
-    const usersGrowth = lastMonthUsers > 0
-      ? (((totalUsers - lastMonthUsers) / lastMonthUsers) * 100).toFixed(1)
-      : "0.0";
+    const usersGrowth =
+      lastMonthUsers > 0
+        ? (((totalUsers - lastMonthUsers) / lastMonthUsers) * 100).toFixed(1)
+        : "0.0";
 
     const examsGrowth = lastMonthExams > 0 ? lastMonthExams : 0;
-    
+
     const currentRevenue = revenueData._sum.amount || 0;
     const lastMonthRevenueAmount = lastMonthRevenue._sum.amount || 0;
-    const revenueGrowth = lastMonthRevenueAmount > 0
-      ? (((currentRevenue - lastMonthRevenueAmount) / lastMonthRevenueAmount) * 100).toFixed(1)
-      : "0.0";
+    const revenueGrowth =
+      lastMonthRevenueAmount > 0
+        ? (
+            ((currentRevenue - lastMonthRevenueAmount) /
+              lastMonthRevenueAmount) *
+            100
+          ).toFixed(1)
+        : "0.0";
 
     return {
       totalUsers,
@@ -211,8 +221,13 @@ export default async function AdminDashboard() {
     {
       title: "Total Students",
       value: stats.totalUsers.toLocaleString(),
-      change: `${parseFloat(stats.usersGrowth) >= 0 ? '+' : ''}${stats.usersGrowth}% from last month`,
-      changeType: parseFloat(stats.usersGrowth) >= 0 ? "positive" as const : "negative" as const,
+      change: `${parseFloat(stats.usersGrowth) >= 0 ? "+" : ""}${
+        stats.usersGrowth
+      }% from last month`,
+      changeType:
+        parseFloat(stats.usersGrowth) >= 0
+          ? ("positive" as const)
+          : ("negative" as const),
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -236,19 +251,15 @@ export default async function AdminDashboard() {
       bgColor: "bg-purple-50",
     },
     {
-      title: "Active Tests",
-      value: stats.activeExamAttempts.toString(),
-      change: "Students taking exams now",
-      changeType: "neutral" as const,
-      icon: Clock,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-    },
-    {
       title: "Revenue",
       value: `₹${stats.totalRevenue.toLocaleString()}`,
-      change: `${parseFloat(stats.revenueGrowth) >= 0 ? '+' : ''}${stats.revenueGrowth}% from last month`,
-      changeType: parseFloat(stats.revenueGrowth) >= 0 ? "positive" as const : "negative" as const,
+      change: `${parseFloat(stats.revenueGrowth) >= 0 ? "+" : ""}${
+        stats.revenueGrowth
+      }% from last month`,
+      changeType:
+        parseFloat(stats.revenueGrowth) >= 0
+          ? ("positive" as const)
+          : ("negative" as const),
       icon: DollarSign,
       color: "text-emerald-600",
       bgColor: "bg-emerald-50",

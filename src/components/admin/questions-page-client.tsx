@@ -16,6 +16,7 @@ import { QuestionPreview } from "@/components/admin/question-preview";
 import { QuestionEditModal } from "@/components/admin/question-edit-modal";
 import { QuestionsFilters } from "@/components/admin/questions-filters";
 import { ConfirmationDialog } from "@/components/ui/dialog";
+import { MathJax } from "@/components/ui/mathjax";
 
 // Type definitions
 interface Question {
@@ -72,9 +73,12 @@ function QuestionTextDisplay({ questionText }: { questionText: string }) {
     );
   }
 
+  // Truncate the text but preserve mathematical expressions
+  const truncatedText = questionText.length > 100 ? questionText.substring(0, 100) + '...' : questionText;
+
   return (
     <div className="text-sm font-medium text-gray-900 truncate">
-      {questionText.substring(0, 100)}...
+      <MathJax>{truncatedText}</MathJax>
     </div>
   );
 }

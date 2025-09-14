@@ -101,23 +101,48 @@ async function getTransactionsData() {
     ]);
 
     // Calculate growth rates
-    const revenueGrowth = lastMonthRevenue._sum.amount && lastMonthRevenue._sum.amount > 0
-      ? ((((totalRevenue._sum.amount || 0) - lastMonthRevenue._sum.amount) / lastMonthRevenue._sum.amount) * 100).toFixed(1)
-      : "0.0";
+    const revenueGrowth =
+      lastMonthRevenue._sum.amount && lastMonthRevenue._sum.amount > 0
+        ? (
+            (((totalRevenue._sum.amount || 0) - lastMonthRevenue._sum.amount) /
+              lastMonthRevenue._sum.amount) *
+            100
+          ).toFixed(1)
+        : "0.0";
 
-    const transactionsGrowth = lastMonthTransactions > 0
-      ? (((totalTransactions - lastMonthTransactions) / lastMonthTransactions) * 100).toFixed(1)
-      : "0.0";
+    const transactionsGrowth =
+      lastMonthTransactions > 0
+        ? (
+            ((totalTransactions - lastMonthTransactions) /
+              lastMonthTransactions) *
+            100
+          ).toFixed(1)
+        : "0.0";
 
-    const currentSuccessRate = totalTransactions > 0 ? (successfulTransactions / totalTransactions) * 100 : 0;
-    const lastMonthSuccessRate = lastMonthTransactions > 0 ? (lastMonthSuccessful / lastMonthTransactions) * 100 : 0;
-    const successRateGrowth = lastMonthSuccessRate > 0
-      ? ((currentSuccessRate - lastMonthSuccessRate) / lastMonthSuccessRate * 100).toFixed(1)
-      : "0.0";
+    const currentSuccessRate =
+      totalTransactions > 0
+        ? (successfulTransactions / totalTransactions) * 100
+        : 0;
+    const lastMonthSuccessRate =
+      lastMonthTransactions > 0
+        ? (lastMonthSuccessful / lastMonthTransactions) * 100
+        : 0;
+    const successRateGrowth =
+      lastMonthSuccessRate > 0
+        ? (
+            ((currentSuccessRate - lastMonthSuccessRate) /
+              lastMonthSuccessRate) *
+            100
+          ).toFixed(1)
+        : "0.0";
 
-    const pendingGrowth = lastMonthPending > 0
-      ? (((pendingTransactions - lastMonthPending) / lastMonthPending) * 100).toFixed(1)
-      : "0.0";
+    const pendingGrowth =
+      lastMonthPending > 0
+        ? (
+            ((pendingTransactions - lastMonthPending) / lastMonthPending) *
+            100
+          ).toFixed(1)
+        : "0.0";
 
     return {
       transactions,
@@ -159,7 +184,9 @@ export default async function TransactionsPage() {
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100",
-      change: `${parseFloat(data.revenueGrowth) >= 0 ? '+' : ''}${data.revenueGrowth}%`,
+      change: `${parseFloat(data.revenueGrowth) >= 0 ? "+" : ""}${
+        data.revenueGrowth
+      }%`,
     },
     {
       title: "Total Transactions",
@@ -167,7 +194,9 @@ export default async function TransactionsPage() {
       icon: Receipt,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
-      change: `${parseFloat(data.transactionsGrowth) >= 0 ? '+' : ''}${data.transactionsGrowth}%`,
+      change: `${parseFloat(data.transactionsGrowth) >= 0 ? "+" : ""}${
+        data.transactionsGrowth
+      }%`,
     },
     {
       title: "Success Rate",
@@ -181,7 +210,9 @@ export default async function TransactionsPage() {
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-100",
-      change: `${parseFloat(data.successRateGrowth) >= 0 ? '+' : ''}${data.successRateGrowth}%`,
+      change: `${parseFloat(data.successRateGrowth) >= 0 ? "+" : ""}${
+        data.successRateGrowth
+      }%`,
     },
     {
       title: "Pending",
@@ -189,7 +220,9 @@ export default async function TransactionsPage() {
       icon: Clock,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100",
-      change: `${parseFloat(data.pendingGrowth) >= 0 ? '+' : ''}${data.pendingGrowth}%`,
+      change: `${parseFloat(data.pendingGrowth) >= 0 ? "+" : ""}${
+        data.pendingGrowth
+      }%`,
     },
   ];
 

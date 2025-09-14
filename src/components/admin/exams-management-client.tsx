@@ -160,7 +160,14 @@ export function ExamsManagementClient({
   // Update filtered exams when filters change
   useEffect(() => {
     filterExams();
-  }, [searchTerm, categoryFilter, statusFilter, priceFilter, exams, filterExams]);
+  }, [
+    searchTerm,
+    categoryFilter,
+    statusFilter,
+    priceFilter,
+    exams,
+    filterExams,
+  ]);
 
   const handleExamUpdated = () => {
     // Refresh the page to show updated data
@@ -185,8 +192,13 @@ export function ExamsManagementClient({
     {
       title: "Total Attempts",
       value: stats.totalAttempts.toLocaleString(),
-      change: `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}% this month`,
-      changeType: stats.monthlyGrowth >= 0 ? "positive" as const : "negative" as const,
+      change: `${stats.monthlyGrowth >= 0 ? "+" : ""}${
+        stats.monthlyGrowth
+      }% this month`,
+      changeType:
+        stats.monthlyGrowth >= 0
+          ? ("positive" as const)
+          : ("negative" as const),
       icon: Users,
       color: "text-green-600",
       bgColor: "bg-green-50",
