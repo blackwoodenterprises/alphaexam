@@ -87,18 +87,6 @@ export default async function ExamsPage() {
 
       <main className="py-12">
         <div className="container-restricted px-4 sm:px-6 lg:px-8">
-          {/* Header Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Mock Tests & Practice Exams
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Comprehensive collection of mock tests for Mathematical Olympiads,
-              JEE, NEET and other competitive exams. Practice with our
-              AI-powered question bank and track your progress.
-            </p>
-          </div>
-
           {/* Client-side search and filters */}
           <Suspense fallback={<div className="text-center py-8">Loading exams...</div>}>
             <ExamsClient initialExams={exams} examCategories={examCategories} />

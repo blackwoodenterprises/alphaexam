@@ -46,27 +46,14 @@ interface ExamsClientProps {
   examCategories: { id: string; name: string }[];
 }
 
-const difficultyOptions = [
-  { value: "easy", label: "Easy", description: "Beginner level" },
-  { value: "medium", label: "Medium", description: "Intermediate level" },
-  { value: "hard", label: "Hard", description: "Advanced level" },
-];
 
-const sortOptions = [
-  { value: "newest", label: "Newest First", description: "Recently added" },
-  { value: "popular", label: "Most Popular", description: "Most attempted" },
-  { value: "duration", label: "Duration", description: "Shortest first" },
-  { value: "price", label: "Price", description: "Lowest first" },
-];
 
 export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
-  const [selectedSort, setSelectedSort] = useState<string>("newest");
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
+
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -85,7 +72,7 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
     }));
   }, [examCategories]);
 
-  // Filter and sort exams
+  // Filter exams
   const filteredAndSortedExams = useMemo(() => {
     let filtered = initialExams;
 
@@ -108,25 +95,8 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
       }
     }
 
-    // Apply sorting
-    switch (selectedSort) {
-      case "popular":
-        filtered.sort((a, b) => b._count.examAttempts - a._count.examAttempts);
-        break;
-      case "duration":
-        filtered.sort((a, b) => a.duration - b.duration);
-        break;
-      case "price":
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "newest":
-      default:
-        // Already sorted by createdAt desc from server
-        break;
-    }
-
     return filtered;
-  }, [initialExams, searchTerm, selectedCategory, selectedSort, examCategories]);
+  }, [initialExams, searchTerm, selectedCategory, examCategories]);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -161,8 +131,6 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedCategory("");
-    setSelectedDifficulty("");
-    setSelectedSort("newest");
     router.push("/exams");
   };
 
@@ -172,17 +140,17 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
       <Card className="mb-8">
         <CardContent className="p-6">
           <div className="flex flex-col gap-4">
-            <div className="w-full">
-              <Input
-                variant="search"
-                placeholder="Search exams by title, category, or topic..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                clearable
-                onClear={() => setSearchTerm("")}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
+                <Input
+                  variant="search"
+                  placeholder="Search exams by title, category, or topic..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  clearable
+                  onClear={() => setSearchTerm("")}
+                />
+              </div>
               <SearchableDropdown
                 options={categoryOptions}
                 value={selectedCategory}
@@ -190,31 +158,10 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
                 placeholder="All Categories"
                 clearable
               />
-              <SearchableDropdown
-                options={difficultyOptions}
-                value={selectedDifficulty}
-                onChange={(value) => setSelectedDifficulty(value as string)}
-                placeholder="All Difficulties"
-                clearable
-              />
-              <SearchableDropdown
-                options={sortOptions}
-                value={selectedSort}
-                onChange={(value) => setSelectedSort(value as string)}
-                placeholder="Sort By"
-              />
-              <Button
-                variant="outline"
-                className="flex items-center justify-center space-x-2 h-10"
-                onClick={() => setShowMoreFilters(!showMoreFilters)}
-              >
-                <Filter className="w-4 h-4" />
-                <span>More Filters</span>
-              </Button>
             </div>
             
             {/* Clear Filters Button */}
-            {(searchTerm || selectedCategory || selectedDifficulty || selectedSort !== "newest") && (
+            {(searchTerm || selectedCategory) && (
               <div className="flex justify-end">
                 <Button variant="ghost" onClick={handleClearFilters}>
                   Clear All Filters
@@ -224,23 +171,6 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
           </div>
         </CardContent>
       </Card>
-
-      {/* Results Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Available Mock Tests ({filteredAndSortedExams.length})
-        </h2>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <span className="hidden sm:inline">Sort by:</span>
-          <SearchableDropdown
-            options={sortOptions}
-            value={selectedSort}
-            onChange={(value) => setSelectedSort(value as string)}
-            size="sm"
-            className="min-w-[120px]"
-          />
-        </div>
-      </div>
 
       {/* Exams Grid */}
       {filteredAndSortedExams.length === 0 ? (
