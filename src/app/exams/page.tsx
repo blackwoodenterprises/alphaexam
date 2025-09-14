@@ -11,6 +11,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ExamsClient } from "@/components/exams-client";
 
+// Force dynamic rendering to prevent caching issues in production
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getPublicExams() {
   try {
     console.log('🔍 Fetching public exams...');
