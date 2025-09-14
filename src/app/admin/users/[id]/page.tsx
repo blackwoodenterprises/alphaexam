@@ -402,8 +402,15 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">
-                      ₹{transaction.amount.toLocaleString()}
+                    <p className={`text-lg font-semibold ${
+                      transaction.type === 'ADMIN_CREDIT'
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      {transaction.type === 'ADMIN_CREDIT' 
+                        ? `+₹${Math.abs(transaction.amount).toLocaleString()}`
+                        : `-₹${Math.abs(transaction.amount).toLocaleString()}`
+                      }
                     </p>
                   </div>
                 </div>

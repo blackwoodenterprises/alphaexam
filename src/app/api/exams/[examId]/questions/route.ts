@@ -144,27 +144,43 @@ export async function GET(
     const questions = examQuestions.map((eq) => eq.question);
     const servedQuestionIds = questions.map((q) => q.id);
 
-    // Create exam attempt with served questions
-    await prisma.examAttempt.create({
-      data: {
-        userId: user.id,
-        examId,
-        creditsUsed: exam.isFree ? 0 : exam.price,
-        servedQuestions: servedQuestionIds,
-      },
-    });
-
-    // Deduct credits if exam is not free
-    if (!exam.isFree) {
-      await prisma.user.update({
-        where: { id: user.id },
+    // Use transaction to ensure data consistency
+    await prisma.$transaction(async (tx) => {
+      // Create exam attempt with served questions
+      await tx.examAttempt.create({
         data: {
-          credits: {
-            decrement: exam.price,
-          },
+          userId: user.id,
+          examId,
+          creditsUsed: exam.isFree ? 0 : exam.price,
+          servedQuestions: servedQuestionIds,
         },
       });
-    }
+
+      // Deduct credits and create transaction record if exam is not free
+      if (!exam.isFree) {
+        // Deduct credits from user account
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            credits: {
+              decrement: exam.price,
+            },
+          },
+        });
+
+        // Create transaction record for the credit deduction
+        await tx.transaction.create({
+          data: {
+            userId: user.id,
+            type: "EXAM_PAYMENT",
+            amount: exam.price,
+            credits: exam.price,
+            status: "COMPLETED",
+            description: `Credits deducted for exam: ${exam.title}`,
+          },
+        });
+      }
+    });
 
     return NextResponse.json({
       exam: {

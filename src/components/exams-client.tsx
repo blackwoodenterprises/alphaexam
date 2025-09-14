@@ -18,7 +18,6 @@ import {
   GraduationCap,
   Star,
   ArrowRight,
-  Filter,
 } from "lucide-react";
 import Link from "next/link";
 

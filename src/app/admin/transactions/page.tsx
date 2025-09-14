@@ -281,8 +281,11 @@ export default async function TransactionsPage() {
     });
   };
 
-  const formatAmount = (amount: number) => {
-    return amount >= 0 ? `+₹${amount}` : `-₹${Math.abs(amount)}`;
+  const formatAmount = (amount: number, transactionType: string) => {
+    if (transactionType === 'ADMIN_CREDIT') {
+      return `+₹${Math.abs(amount)}`;
+    }
+    return `-₹${Math.abs(amount)}`;
   };
 
   return (
@@ -446,12 +449,12 @@ export default async function TransactionsPage() {
                         <td className="py-4 px-4">
                           <span
                             className={`font-semibold ${
-                              transaction.amount >= 0
+                              transaction.type === 'ADMIN_CREDIT'
                                 ? "text-green-600"
                                 : "text-red-600"
                             }`}
                           >
-                            {formatAmount(transaction.amount)}
+                            {formatAmount(transaction.amount, transaction.type)}
                           </span>
                         </td>
                         <td className="py-4 px-4">

@@ -22,6 +22,7 @@ import {
   Target,
   Receipt,
   Plus,
+  HelpCircle,
 } from "lucide-react";
 
 interface ExamAttempt {
@@ -250,21 +251,21 @@ export default function UserDashboard() {
                 </a>
 
                 <a
-                  href="/analytics"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-200 transition-colors duration-200 group text-center"
-                >
-                  <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
-                  <div className="font-medium text-gray-900">Analytics</div>
-                  <div className="text-sm text-gray-500">View progress</div>
-                </a>
-
-                <a
-                  href="/credits"
+                  href="/buy-credits"
                   className="p-4 border border-gray-200 rounded-lg hover:bg-pink-50 hover:border-pink-200 transition-colors duration-200 group text-center"
                 >
                   <CreditCard className="w-8 h-8 text-pink-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
                   <div className="font-medium text-gray-900">Buy Credits</div>
                   <div className="text-sm text-gray-500">Add balance</div>
+                </a>
+
+                <a
+                  href="/help"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-200 transition-colors duration-200 group text-center"
+                >
+                  <HelpCircle className="w-8 h-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
+                  <div className="font-medium text-gray-900">Help Center</div>
+                  <div className="text-sm text-gray-500">Get support</div>
                 </a>
               </div>
             </CardContent>

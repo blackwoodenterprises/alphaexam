@@ -174,9 +174,13 @@ model Transaction {
   type              TransactionType
   amount            Float
   credits           Float
+  currency          String            @default("INR")
+  paymentGateway    PaymentGateway    @default(RAZORPAY)
   status            TransactionStatus @default(PENDING)
   razorpayOrderId   String?
   razorpayPaymentId String?
+  paypalOrderId     String?
+  paypalPaymentId   String?
   description       String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -227,4 +231,9 @@ enum TransactionStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+enum PaymentGateway {
+  RAZORPAY
+  PAYPAL
 }
