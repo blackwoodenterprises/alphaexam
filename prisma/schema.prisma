@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -142,9 +143,10 @@ model Exam {
   id             String   @id @default(cuid())
   title          String
   description    String?
+  richDescription String? @db.Text // Rich text description for "About This Exam" section
   price          Float    @default(0.0) // Price in credits
   duration       Int // Duration in minutes
-  questionsToServe Int?   // Number of questions to serve to end users
+  questionsToServe Int    // Number of questions to serve to end users
   isActive       Boolean  @default(true)
   isFree         Boolean  @default(false)
   examCategoryId String?

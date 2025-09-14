@@ -8,7 +8,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { MathJax } from "@/components/ui/mathjax";
-import { X, CheckCircle, XCircle } from "lucide-react";
+import { X, CheckCircle } from "lucide-react";
 
 interface Question {
   id: string;
@@ -44,8 +44,6 @@ interface QuestionPreviewProps {
 
 export function QuestionPreview({ question, children }: QuestionPreviewProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
 
   const options = [
     { key: "A", value: question.optionA },
@@ -53,11 +51,6 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
     { key: "C", value: question.optionC },
     { key: "D", value: question.optionD },
   ];
-
-  const handleAnswerSelect = (optionKey: string) => {
-    setSelectedAnswer(optionKey);
-    setShowExplanation(true);
-  };
 
 
 
@@ -78,11 +71,7 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                 </h2>
                 <Button
                   variant="ghost"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setSelectedAnswer(null);
-                    setShowExplanation(false);
-                  }}
+                  onClick={() => setIsOpen(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-5 h-5" />
@@ -120,22 +109,14 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                         <div className="space-y-2">
                           {options.map((option) => {
                             const isCorrect = option.key === question.correctAnswer;
-                            const isSelected = option.key === selectedAnswer;
-                            const showResult = showExplanation;
 
                             return (
-                              <button
+                              <div
                                 key={option.key}
-                                onClick={() => handleAnswerSelect(option.key)}
-                                disabled={showExplanation}
-                                className={`w-full text-left p-3 border rounded flex items-start justify-between transition-colors ${
-                                  showResult
-                                    ? isCorrect
-                                      ? "border-green-500 bg-green-50"
-                                      : isSelected
-                                      ? "border-red-500 bg-red-50"
-                                      : "border-gray-200 bg-white"
-                                    : "border-gray-200 bg-white hover:border-green-300"
+                                className={`w-full text-left p-3 border rounded flex items-start justify-between ${
+                                  isCorrect
+                                    ? "border-green-500 bg-green-50"
+                                    : "border-gray-200 bg-white"
                                 }`}
                               >
                                 <div className="flex items-start flex-1">
@@ -144,16 +125,12 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                                     {option.value}
                                   </MathJax>
                                 </div>
-                                {showResult && (
+                                {isCorrect && (
                                   <div className="flex-shrink-0">
-                                    {isCorrect ? (
-                                      <CheckCircle className="w-5 h-5 text-green-600" />
-                                    ) : isSelected ? (
-                                      <XCircle className="w-5 h-5 text-red-600" />
-                                    ) : null}
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
                                   </div>
                                 )}
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -181,68 +158,19 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                     </div>
                   </div>
 
-                  {/* Results */}
-                  {showExplanation && (
+                  {/* Explanation (if available) */}
+                  {question.explanation && (
                     <div className="space-y-4">
-                      <div
-                        className={`p-4 rounded-lg ${
-                          selectedAnswer === question.correctAnswer
-                            ? "bg-green-50 border border-green-200"
-                            : "bg-red-50 border border-red-200"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-2 mb-2">
-                          {selectedAnswer === question.correctAnswer ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-600" />
-                          )}
-                          <span
-                            className={`font-medium ${
-                              selectedAnswer === question.correctAnswer
-                                ? "text-green-800"
-                                : "text-red-800"
-                            }`}
-                          >
-                            {selectedAnswer === question.correctAnswer
-                              ? "Correct!"
-                              : "Incorrect"}
-                          </span>
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Explanation
+                        </h4>
+                        <div className="p-4 bg-blue-50 rounded-lg text-blue-900 text-sm">
+                          <MathJax>
+                            {question.explanation}
+                          </MathJax>
                         </div>
-                        <p
-                          className={`text-sm ${
-                            selectedAnswer === question.correctAnswer
-                              ? "text-green-700"
-                              : "text-red-700"
-                          }`}
-                        >
-                          The correct answer is option {question.correctAnswer}.
-                        </p>
                       </div>
-
-                      {question.explanation && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Explanation
-                          </h4>
-                          <div className="p-4 bg-blue-50 rounded-lg text-blue-900 text-sm">
-                            <MathJax>
-                              {question.explanation}
-                            </MathJax>
-                          </div>
-                        </div>
-                      )}
-
-                      <Button
-                        onClick={() => {
-                          setSelectedAnswer(null);
-                          setShowExplanation(false);
-                        }}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        Try Again
-                      </Button>
                     </div>
                   )}
                 </CardContent>

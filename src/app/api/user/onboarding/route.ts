@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('=== ONBOARDING API CALLED ===');
@@ -50,21 +52,54 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Update existing user with onboarding data
-    const user = await prisma.user.update({
-      where: { clerkId: userId },
-      data: {
-        phoneNumber,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        preferredExams,
-        academicLevel,
-        goals,
-        onboardingComplete: true,
-        firstName: clerkUser.firstName || existingUser.firstName,
-        lastName: clerkUser.lastName || existingUser.lastName,
-        email: clerkUser.emailAddresses[0]?.emailAddress || existingUser.email,
-      },
-    });
+    // Check if user has already completed onboarding to avoid duplicate credit transactions
+    if (existingUser.onboardingComplete) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Onboarding already completed',
+        user: {
+          id: existingUser.id,
+          email: existingUser.email,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          role: existingUser.role,
+          credits: existingUser.credits
+        }
+      });
+    }
+
+    // Update user with onboarding data and add 100 bonus credits
+    const newCredits = existingUser.credits + 100;
+    
+    const [user, _transaction] = await Promise.all([
+      prisma.user.update({
+        where: { clerkId: userId },
+        data: {
+          phoneNumber,
+          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+          preferredExams,
+          academicLevel,
+          goals,
+          onboardingComplete: true,
+          firstName: clerkUser.firstName || existingUser.firstName,
+          lastName: clerkUser.lastName || existingUser.lastName,
+          email: clerkUser.emailAddresses[0]?.emailAddress || existingUser.email,
+          credits: newCredits,
+        },
+      }),
+      // Create transaction record for onboarding bonus
+      prisma.transaction.create({
+        data: {
+          userId: existingUser.id,
+          type: "ADMIN_CREDIT",
+          amount: 100,
+          credits: 100,
+          status: "COMPLETED",
+          razorpayPaymentId: `onboarding_${Date.now()}`,
+          description: "Welcome bonus - 100 credits for completing onboarding",
+        },
+      })
+    ]);
 
     console.log('User upserted successfully:', user.id);
 

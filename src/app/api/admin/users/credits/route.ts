@@ -83,6 +83,23 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error updating user credits:", error);
+    
+    // Handle authentication errors specifically
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized") {
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+      if (error.message === "Admin access required") {
+        return NextResponse.json(
+          { error: "Admin access required" },
+          { status: 403 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: "Failed to update user credits" },
       { status: 500 }

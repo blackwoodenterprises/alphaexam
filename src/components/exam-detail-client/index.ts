@@ -1,0 +1,1 @@
+export { ExamDetailClient } from '../exam-detail-client';

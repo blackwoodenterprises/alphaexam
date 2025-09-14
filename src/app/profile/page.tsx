@@ -32,8 +32,9 @@ async function getUserProfile() {
     redirect("/sign-in");
   }
 
+  let user;
   try {
-    const user = await prisma.user.findUnique({
+    user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
         examAttempts: {
@@ -56,16 +57,22 @@ async function getUserProfile() {
         },
       },
     });
-
-    if (!user) {
-      redirect("/onboarding");
-    }
-
-    return user;
   } catch (error) {
     console.error("Error fetching user profile:", error);
+    // Don't redirect here, let it fall through to user check logic
+    user = null;
+  }
+
+  if (!user) {
     redirect("/onboarding");
   }
+
+  // Check if user has completed onboarding
+  if (!user.onboardingComplete) {
+    redirect("/onboarding");
+  }
+
+  return user;
 }
 
 export default async function ProfilePage() {

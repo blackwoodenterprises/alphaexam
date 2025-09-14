@@ -56,19 +56,18 @@ async function getUserData() {
     });
   } catch (error) {
     console.error("Error fetching user data:", error);
-    redirect("/onboarding");
+    // Don't redirect here, let it fall through to user creation logic
+    user = null;
   }
 
   if (!user) {
     // User exists in Clerk but not in our database, create user first
-    try {
-      await createOrUpdateUser();
-      // User created successfully, redirect to onboarding
-      redirect("/onboarding");
-    } catch (error) {
-      console.error('Error creating user:', error);
-      redirect("/onboarding");
+    const createdUser = await createOrUpdateUser();
+    if (!createdUser) {
+      console.error('Failed to create user');
     }
+    // Always redirect to onboarding for new users
+    redirect("/onboarding");
   }
 
   if (!user.onboardingComplete) {

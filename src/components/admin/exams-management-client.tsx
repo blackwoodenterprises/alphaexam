@@ -31,7 +31,7 @@ interface Exam {
   title: string;
   description: string | null;
   duration: number;
-  questionsToServe: number | null;
+  questionsToServe: number;
   price: number;
   isFree: boolean;
   isActive: boolean;

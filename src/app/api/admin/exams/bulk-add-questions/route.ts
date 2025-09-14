@@ -64,18 +64,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for existing questions in the exam
+    // Check for existing questions in the exam and filter out duplicates
     const existingQuestionIds = exam.examQuestions.map(eq => eq.questionId);
     const duplicateQuestionIds = questionIds.filter(id => existingQuestionIds.includes(id));
+    const newQuestionIds = questionIds.filter(id => !existingQuestionIds.includes(id));
     
-    if (duplicateQuestionIds.length > 0) {
-      return NextResponse.json(
-        { 
-          error: "Some questions are already in this exam",
-          duplicateQuestionIds 
+    // If no new questions to add, return success with appropriate message
+    if (newQuestionIds.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "All selected questions are already in this exam",
+        data: {
+          examId,
+          addedQuestions: 0,
+          skippedQuestions: duplicateQuestionIds.length,
+          totalQuestions: exam.examQuestions.length,
         },
-        { status: 400 }
-      );
+      });
     }
 
     // Get the next order number for new questions
@@ -83,8 +88,8 @@ export async function POST(request: NextRequest) {
       ? Math.max(...exam.examQuestions.map(eq => eq.order))
       : 0;
 
-    // Prepare exam questions data
-    const examQuestionsData = questionIds.map((questionId, index) => ({
+    // Prepare exam questions data only for new questions
+    const examQuestionsData = newQuestionIds.map((questionId, index) => ({
       examId,
       questionId,
       marks,
@@ -117,12 +122,19 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // Create appropriate success message
+    let message = `Successfully added ${result.createdCount} questions to the exam`;
+    if (duplicateQuestionIds.length > 0) {
+      message += ` (${duplicateQuestionIds.length} questions were already in the exam and were skipped)`;
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Successfully added ${result.createdCount} questions to the exam`,
+      message,
       data: {
         examId,
         addedQuestions: result.createdCount,
+        skippedQuestions: duplicateQuestionIds.length,
         totalQuestions: result.totalQuestions,
       },
     });

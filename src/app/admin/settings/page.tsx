@@ -6,7 +6,6 @@ import {
   Database,
   Mail,
   Shield,
-  Globe,
   Bell,
   CreditCard,
   Users,
@@ -16,7 +15,6 @@ import {
 } from "lucide-react";
 
 export default async function SettingsPage() {
-
   const settingsSections = [
     {
       title: "General Settings",
@@ -236,75 +234,6 @@ export default async function SettingsPage() {
           </Card>
         ))}
       </div>
-
-      {/* System Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Globe className="w-5 h-5 text-purple-600" />
-            <span>System Information</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Version</p>
-              <p className="text-lg font-semibold text-gray-900">1.0.0</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Environment</p>
-              <p className="text-lg font-semibold text-gray-900">Production</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Database</p>
-              <p className="text-lg font-semibold text-gray-900">PostgreSQL</p>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Uptime</p>
-              <p className="text-lg font-semibold text-gray-900">99.9%</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
-              <div>
-                <h3 className="font-medium text-red-900">Clear All Cache</h3>
-                <p className="text-sm text-red-700">
-                  Remove all cached data and force refresh
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-100"
-              >
-                Clear Cache
-              </Button>
-            </div>
-            <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
-              <div>
-                <h3 className="font-medium text-red-900">Reset Database</h3>
-                <p className="text-sm text-red-700">
-                  ⚠️ This will permanently delete all data
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-100"
-              >
-                Reset Database
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

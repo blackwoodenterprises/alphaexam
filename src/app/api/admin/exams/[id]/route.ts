@@ -12,6 +12,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const {
       title,
       description,
+      richDescription,
       examCategoryId,
       duration,
       questionsToServe,
@@ -50,9 +51,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       data: {
         title,
         description: description || null,
+        ...(richDescription !== null && richDescription !== undefined && { richDescription }),
         examCategoryId,
         duration: parseInt(duration),
-        questionsToServe: questionsToServe ? parseInt(questionsToServe) : null,
+        questionsToServe: questionsToServe ? parseInt(questionsToServe) : 50,
         price: isFree ? 0 : parseFloat(price),
         isFree: Boolean(isFree),
         isActive: Boolean(isActive),

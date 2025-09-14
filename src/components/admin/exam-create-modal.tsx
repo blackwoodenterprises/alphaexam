@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dropdown } from "@/components/ui/dropdown";
 import { X } from "lucide-react";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 interface ExamCategory {
   id: string;
@@ -28,12 +29,13 @@ interface ExamCreateModalProps {
 export function ExamCreateModal({ children }: ExamCreateModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(1); // 1: Basic Info, 2: Settings
+  const [step, setStep] = useState(1); // 1: Basic Info, 2: Settings, 3: About This Exam
   const [loading, setLoading] = useState(false);
   const [examCategories, setExamCategories] = useState<ExamCategory[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    richDescription: "",
     examCategoryId: "",
     duration: 60,
     questionsToServe: "",
@@ -95,6 +97,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
     setFormData({
       title: "",
       description: "",
+      richDescription: "",
       examCategoryId: "",
       duration: 60,
       questionsToServe: "",
@@ -135,6 +138,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                 {[
                   { step: 1, label: "Basic Info" },
                   { step: 2, label: "Settings" },
+                  { step: 3, label: "About This Exam" },
                 ].map(({ step: stepNum, label }) => (
                   <div key={stepNum} className="flex items-center">
                     <div
@@ -149,7 +153,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                     <span className="ml-2 text-sm font-medium text-gray-700">
                       {label}
                     </span>
-                    {stepNum < 2 && (
+                    {stepNum < 3 && (
                       <div className="w-8 h-px bg-gray-300 ml-4" />
                     )}
                   </div>
@@ -211,6 +215,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                           }
                           min="1"
                           placeholder="Number of questions for users"
+                          required
                         />
                       </div>
 
@@ -243,7 +248,7 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                       <div className="flex justify-end">
                         <Button
                           onClick={() => setStep(2)}
-                          disabled={!formData.title || !formData.examCategoryId}
+                          disabled={!formData.title || !formData.examCategoryId || !formData.questionsToServe}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                           Next: Settings
@@ -326,8 +331,51 @@ export function ExamCreateModal({ children }: ExamCreateModalProps) {
                           Back
                         </Button>
                         <Button
+                          onClick={() => setStep(3)}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        >
+                          Next: About This Exam
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {step === 3 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>About This Exam</CardTitle>
+                    <CardDescription>
+                      Provide a detailed description of what this exam covers
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Rich Description
+                        </label>
+                        <RichTextEditor
+                          content={formData.richDescription}
+                          onChange={(content) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              richDescription: content,
+                            }))
+                          }
+                          placeholder="Provide a detailed description of this exam, including topics covered, difficulty level, and any special instructions..."
+                          className="min-h-[300px]"
+                        />
+                      </div>
+
+                      <div className="flex justify-between">
+                        <Button variant="outline" onClick={() => setStep(2)}>
+                          Back
+                        </Button>
+                        <Button
                           onClick={handleSubmit}
-                          disabled={loading || !formData.title}
+                          disabled={loading || !formData.title || !formData.questionsToServe}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                           {loading ? "Creating..." : "Create Exam"}

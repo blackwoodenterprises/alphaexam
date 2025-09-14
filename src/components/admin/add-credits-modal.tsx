@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { X, CreditCard, Save } from "lucide-react";
 
 interface AddCreditsModalProps {
@@ -15,13 +16,37 @@ export function AddCreditsModal({ userId, userName }: AddCreditsModalProps) {
   const [formData, setFormData] = useState({
     amount: "",
     reason: "",
-    type: "ADD" as "ADD" | "DEDUCT",
   });
+
+  // Form validation state
+  const isFormValid = () => {
+    return (
+      formData.amount &&
+      parseInt(formData.amount) > 0 &&
+      formData.reason.trim().length >= 20
+    );
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Form should already be validated by button state, but double-check
+    if (!isFormValid()) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    const requestData = {
+      userId,
+      amount: parseInt(formData.amount),
+      reason: formData.reason.trim(),
+      type: "ADD",
+    };
+
+    console.log("Sending request data:", requestData);
+    console.log("Form data state:", formData);
 
     try {
       const response = await fetch("/api/admin/users/credits", {
@@ -30,21 +55,25 @@ export function AddCreditsModal({ userId, userName }: AddCreditsModalProps) {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          userId,
-          amount: parseInt(formData.amount),
-          reason: formData.reason,
-          type: formData.type,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
-        setFormData({ amount: "", reason: "", type: "ADD" });
+        const data = await response.json();
+        console.log("Credits updated successfully:", data);
+        setFormData({ amount: "", reason: "" });
         setIsOpen(false);
         // Refresh the page to show updated credits
         window.location.reload();
       } else {
-        console.error("Failed to update credits");
+        const errorData = await response.json();
+        console.error("Failed to update credits:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          requestData: requestData
+        });
+        alert(`Error: ${errorData.error || 'Failed to update credits'}\n\nRequest data: ${JSON.stringify(requestData, null, 2)}`);
       }
     } catch (error) {
       console.error("Error updating credits:", error);
@@ -53,16 +82,7 @@ export function AddCreditsModal({ userId, userName }: AddCreditsModalProps) {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+
 
   if (!isOpen) {
     return (
@@ -70,110 +90,95 @@ export function AddCreditsModal({ userId, userName }: AddCreditsModalProps) {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="text-purple-600 border-purple-200 hover:bg-purple-50"
+        className="text-gray-600 border-gray-300 hover:bg-gray-50"
       >
         <CreditCard className="w-4 h-4 mr-1" />
-        Credits
+        Add Credit
       </Button>
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center space-x-2">
-              <CreditCard className="w-5 h-5 text-purple-600" />
-              <span>Manage Credits</span>
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="p-1"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          <p className="text-sm text-gray-600">
-            Adjust credits for <span className="font-medium">{userName}</span>
-          </p>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Action *
-              </label>
-              <select
-                id="type"
-                name="type"
-                required
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-              >
-                <option value="ADD">Add Credits</option>
-                <option value="DEDUCT">Deduct Credits</option>
-              </select>
-            </div>
 
+
+  return (
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-50 rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-300">
+          <div className="flex items-center space-x-2">
+            <CreditCard className="w-5 h-5 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-800">Add Credit</h2>
+          </div>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="mb-6">
+            <p className="text-sm text-gray-600">
+              Adjusting credits for: <span className="font-medium text-gray-900">{userName}</span>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Amount *
               </label>
-              <input
+              <Input
                 type="number"
-                id="amount"
-                name="amount"
-                required
-                min="1"
                 value={formData.amount}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
                 placeholder="Enter amount"
+                min="1"
+                required
+                size="lg"
               />
             </div>
 
             <div>
-              <label
-                htmlFor="reason"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Reason *
               </label>
-              <textarea
-                id="reason"
-                name="reason"
-                required
+              <Textarea
                 value={formData.reason}
-                onChange={handleChange}
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="Enter reason for credit adjustment (minimum 20 characters)"
+                required
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-vertical"
-                placeholder="Reason for credit adjustment..."
+                size="lg"
+                minLength={20}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.reason.length}/20 characters minimum
+              </p>
             </div>
 
-            <div className="flex space-x-3 pt-4">
+            {/* Footer */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-300">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
-                className="flex-1"
+                disabled={isSubmitting}
+                size="lg"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                disabled={isSubmitting || !isFormValid()}
+                size="lg"
+                className={`text-white ${
+                  isFormValid() && !isSubmitting
+                    ? "bg-gray-700 hover:bg-gray-800"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 {isSubmitting ? (
                   <>
@@ -183,14 +188,14 @@ export function AddCreditsModal({ userId, userName }: AddCreditsModalProps) {
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    {formData.type === "ADD" ? "Add" : "Deduct"} Credits
+                    Add Credits
                   </>
                 )}
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

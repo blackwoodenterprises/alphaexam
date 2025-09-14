@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,11 +13,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowRight, Phone, Target, BookOpen } from "lucide-react";
+import { ArrowRight, Phone, Target, BookOpen, CreditCard } from "lucide-react";
 
 export default function OnboardingPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+
+  // Handle authentication at the top level
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push("/sign-in");
+    }
+  }, [isLoaded, user, router]);
+
+  // Check if user has already completed onboarding
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (isLoaded && user) {
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.user && userData.user.onboardingComplete) {
+              router.push('/dashboard');
+            }
+          }
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+        }
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [isLoaded, user, router]);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     phoneNumber: "",
@@ -372,6 +400,23 @@ export default function OnboardingPage() {
     }
   };
 
+  // Show loading state while checking authentication
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the component if user is not authenticated
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <Header />
@@ -379,6 +424,41 @@ export default function OnboardingPage() {
       <main className="py-12">
         <div className="container-restricted px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto">
+            {/* Enhanced Promotional Banner */}
+            <div className="mb-10">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 border-0 shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+                <CardContent className="relative p-8">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-4 animate-pulse">
+                      <CreditCard className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <span className="text-2xl animate-bounce">🎉</span>
+                        <h2 className="text-2xl font-bold text-white">
+                          Welcome Bonus!
+                        </h2>
+                        <span className="text-2xl animate-bounce">🎉</span>
+                      </div>
+                      <p className="text-white/90 text-lg leading-relaxed">
+                        Complete your onboarding journey and receive
+                      </p>
+                      <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mt-3">
+                        <span className="text-3xl font-black text-white mr-2">100</span>
+                        <span className="text-white font-semibold text-lg">FREE CREDITS</span>
+                      </div>
+                      <p className="text-white/80 text-sm mt-3">
+                        ✨ Instantly credited to your account upon completion ✨
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Progress indicator */}
             <div className="mb-8">
               <div className="flex items-center justify-center space-x-4 mb-4">
@@ -418,7 +498,7 @@ export default function OnboardingPage() {
         </div>
       </main>
 
-      <Footer />
+
     </div>
   );
 }

@@ -71,7 +71,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={cn("relative", className)}>
         {/* Label */}
         {label && (
-          <label className="block text-left text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-left text-sm font-medium text-gray-700 mb-1" suppressHydrationWarning>
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>

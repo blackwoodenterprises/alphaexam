@@ -48,7 +48,7 @@ export async function POST() {
           firstName: clerkUser.firstName || '',
           lastName: clerkUser.lastName || '',
           role: 'STUDENT',
-          credits: 10, // Give new users some free credits
+          // credits will default to 0.0 as defined in schema
           onboardingComplete: false
         }
       });

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   BookOpen,
@@ -11,15 +13,19 @@ import {
 } from "lucide-react";
 
 export function Footer() {
+  // Static product links - no database dependency
+  const productLinks = [
+    { name: "JEE Tests", href: "/exams?category=jee" },
+    { name: "NEET Tests", href: "/exams?category=neet" },
+    { name: "GATE Tests", href: "/exams?category=gate" },
+    { name: "CAT Tests", href: "/exams?category=cat" },
+    { name: "Question Bank", href: "/questions" },
+  ];
+
   const footerSections = [
     {
       title: "Product",
-      links: [
-        { name: "Olympiad Tests", href: "/exams?category=olympiad" },
-        { name: "JEE Tests", href: "/exams?category=jee" },
-        { name: "NEET Tests", href: "/exams?category=neet" },
-        { name: "Question Bank", href: "/questions" },
-      ],
+      links: productLinks,
     },
     {
       title: "Company",

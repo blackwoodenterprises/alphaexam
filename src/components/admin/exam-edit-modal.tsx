@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dropdown } from "@/components/ui/dropdown";
 import { X } from "lucide-react";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 interface ExamCategory {
   id: string;
@@ -25,8 +26,9 @@ interface Exam {
   id: string;
   title: string;
   description: string | null;
+  richDescription?: string | null;
   duration: number;
-  questionsToServe: number | null;
+  questionsToServe: number;
   price: number;
   isFree: boolean;
   isActive: boolean;
@@ -48,7 +50,7 @@ export function ExamEditModal({
   onExamUpdated,
 }: ExamEditModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1: Basic Info, 2: Settings, 3: About This Exam
   const [loading, setLoading] = useState(false);
   const [examCategories, setExamCategories] = useState<ExamCategory[]>([]);
   const router = useRouter();
@@ -56,6 +58,7 @@ export function ExamEditModal({
   const [formData, setFormData] = useState({
     title: exam.title,
     description: exam.description || "",
+    richDescription: exam.richDescription || "",
     examCategoryId: exam.examCategoryId,
     duration: exam.duration,
     questionsToServe: exam.questionsToServe?.toString() || "",
@@ -94,6 +97,7 @@ export function ExamEditModal({
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
+          richDescription: formData.richDescription,
           examCategoryId: formData.examCategoryId,
           duration: formData.duration,
           questionsToServe: formData.questionsToServe
@@ -127,6 +131,7 @@ export function ExamEditModal({
     setFormData({
       title: exam.title,
       description: exam.description || "",
+      richDescription: exam.richDescription || "",
       examCategoryId: exam.examCategoryId,
       duration: exam.duration,
       questionsToServe: exam.questionsToServe?.toString() || "",
@@ -165,6 +170,7 @@ export function ExamEditModal({
                 {[
                   { step: 1, label: "Basic Info" },
                   { step: 2, label: "Settings" },
+                  { step: 3, label: "About This Exam" },
                 ].map(({ step: stepNum, label }) => (
                   <div key={stepNum} className="flex items-center">
                     <div
@@ -183,7 +189,7 @@ export function ExamEditModal({
                     >
                       {label}
                     </span>
-                    {stepNum < 2 && (
+                    {stepNum < 3 && (
                       <div
                         className={`w-8 h-0.5 mx-4 ${
                           step > stepNum ? "bg-purple-600" : "bg-gray-200"
@@ -249,6 +255,7 @@ export function ExamEditModal({
                           }
                           min="1"
                           placeholder="Number of questions for users"
+                          required
                         />
                       </div>
 
@@ -281,7 +288,7 @@ export function ExamEditModal({
                       <div className="flex justify-end">
                         <Button
                           onClick={() => setStep(2)}
-                          disabled={!formData.title || !formData.examCategoryId}
+                          disabled={!formData.title || !formData.examCategoryId || !formData.questionsToServe}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                           Next: Settings
@@ -368,8 +375,52 @@ export function ExamEditModal({
                           Back
                         </Button>
                         <Button
+                          onClick={() => setStep(3)}
+                          disabled={!formData.title || !formData.questionsToServe}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        >
+                          Next: About This Exam
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 3: About This Exam */}
+              {step === 3 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>About This Exam</CardTitle>
+                    <CardDescription>
+                      Provide a detailed description of the exam content and objectives
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Rich Description
+                        </label>
+                        <RichTextEditor
+                          content={formData.richDescription || ""}
+                          onChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              richDescription: value,
+                            }))
+                          }
+                          placeholder="Provide a detailed description of the exam..."
+                        />
+                      </div>
+
+                      <div className="flex justify-between">
+                        <Button variant="outline" onClick={() => setStep(2)}>
+                          Back
+                        </Button>
+                        <Button
                           onClick={handleSubmit}
-                          disabled={loading || !formData.title}
+                          disabled={loading || !formData.title || !formData.questionsToServe}
                           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                           {loading ? "Updating..." : "Update Exam"}

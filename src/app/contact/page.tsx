@@ -126,6 +126,7 @@ export default function ContactPage() {
             </Card>
           </div>
         </main>
+
         <Footer />
       </div>
     );

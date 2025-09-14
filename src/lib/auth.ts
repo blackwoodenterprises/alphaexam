@@ -65,7 +65,7 @@ export async function createOrUpdateUser() {
         lastName: clerkUser.lastName || "",
         phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber || null,
         role: UserRole.STUDENT,
-        credits: 10, // Give new users some free credits
+        // credits will default to 0.0 as defined in schema
         onboardingComplete: false,
       },
     });

@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
+      richDescription,
       examCategoryId,
       duration,
       questionsToServe,
@@ -40,9 +41,10 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description: description || null,
+        richDescription: richDescription || null,
         examCategoryId,
         duration: parseInt(duration),
-        questionsToServe: questionsToServe ? parseInt(questionsToServe) : null,
+        questionsToServe: questionsToServe ? parseInt(questionsToServe) : 50,
         price: isFree ? 0 : parseFloat(price),
         isFree: Boolean(isFree),
         isActive: Boolean(isActive),
