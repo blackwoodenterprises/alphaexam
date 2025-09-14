@@ -262,10 +262,10 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedExams.map((exam) => (
-              <Card
-                key={exam.id}
-                className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer flex flex-col h-full"
-              >
+              <Link key={exam.id} href={`/exams/detail/${exam.id}`} className="block">
+                <Card
+                  className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer flex flex-col h-full"
+                >
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <span
@@ -329,15 +329,14 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
                         </span>
                       </div>
                     </div>
-                    <Link href={`/exams/detail/${exam.id}`} className="block">
-                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white group-hover:shadow-lg transition-all">
-                        View Details
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
+                    <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white group-hover:shadow-lg transition-all">
+                      View Details
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
 
