@@ -13,6 +13,7 @@ import { ExamsClient } from "@/components/exams-client";
 
 async function getPublicExams() {
   try {
+    console.log('🔍 Fetching public exams...');
     const exams = await prisma.exam.findMany({
       where: {
         isActive: true,
@@ -20,28 +21,40 @@ async function getPublicExams() {
       include: {
         examCategory: {
           select: {
+            id: true,
             name: true,
+          },
+        },
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
           },
         },
         _count: {
           select: {
-            examQuestions: true,
             examAttempts: true,
+            examQuestions: true,
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
+    console.log('📊 Found public exams:', exams.length, 'exams');
+    console.log('📋 Sample exam categories:', exams.slice(0, 3).map(e => e.examCategory));
     return exams;
   } catch (error) {
-    console.error("Error fetching public exams:", error);
+    console.error("❌ Error fetching exams:", error);
     return [];
   }
 }
 
 async function getExamCategories() {
   try {
+    console.log('🔍 Fetching exam categories...');
     const categories = await prisma.examCategory.findMany({
       select: {
         id: true,
@@ -50,9 +63,10 @@ async function getExamCategories() {
       orderBy: { name: "asc" },
     });
 
+    console.log('📊 Found exam categories:', categories.length, categories);
     return categories;
   } catch (error) {
-    console.error("Error fetching exam categories:", error);
+    console.error("❌ Error fetching exam categories:", error);
     return [];
   }
 }
