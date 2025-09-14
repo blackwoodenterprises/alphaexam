@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 import {
@@ -273,9 +274,11 @@ export default async function UsersPage() {
                       userId={user.id}
                       userName={user.firstName || user.email}
                     />
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <Link href={`/admin/users/${user.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </Link>
                     <Button variant="ghost" size="sm">
                       <Edit className="w-4 h-4" />
                     </Button>

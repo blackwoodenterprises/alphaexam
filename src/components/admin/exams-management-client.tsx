@@ -56,6 +56,8 @@ interface ExamStats {
   activeExams: number;
   totalAttempts: number;
   totalRevenue: number;
+  avgDuration: number;
+  monthlyGrowth: number;
 }
 
 interface ExamCategory {
@@ -183,16 +185,16 @@ export function ExamsManagementClient({
     {
       title: "Total Attempts",
       value: stats.totalAttempts.toLocaleString(),
-      change: "+12% this month",
-      changeType: "positive" as const,
+      change: `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}% this month`,
+      changeType: stats.monthlyGrowth >= 0 ? "positive" as const : "negative" as const,
       icon: Users,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
       title: "Avg Duration",
-      value: "45 min",
-      change: "Standard duration",
+      value: `${stats.avgDuration}m`,
+      change: "Average completion time",
       changeType: "neutral" as const,
       icon: Clock,
       color: "text-orange-600",
@@ -201,8 +203,8 @@ export function ExamsManagementClient({
     {
       title: "Revenue",
       value: `₹${stats.totalRevenue.toLocaleString()}`,
-      change: "+8.5% this month",
-      changeType: "positive" as const,
+      change: "From completed transactions",
+      changeType: "neutral" as const,
       icon: DollarSign,
       color: "text-purple-600",
       bgColor: "bg-purple-50",

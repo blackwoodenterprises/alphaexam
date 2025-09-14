@@ -44,25 +44,25 @@ export function BulkAddToExamModal({
 
   // Fetch exams when modal opens
   useEffect(() => {
+    const fetchExams = async () => {
+      setFetchingExams(true);
+      try {
+        const response = await fetch("/api/admin/exams");
+        if (response.ok) {
+          const data = await response.json();
+          setExams(data.exams || data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch exams:", error);
+      } finally {
+        setFetchingExams(false);
+      }
+    };
+
     if (isOpen) {
       fetchExams();
     }
   }, [isOpen]);
-
-  const fetchExams = async () => {
-    setFetchingExams(true);
-    try {
-      const response = await fetch("/api/admin/exams");
-      if (response.ok) {
-        const data = await response.json();
-        setExams(data.exams || data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch exams:", error);
-    } finally {
-      setFetchingExams(false);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!selectedExamId || selectedQuestionIds.length === 0) return;

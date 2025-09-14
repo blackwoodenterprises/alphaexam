@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -19,6 +20,11 @@ import {
 
 async function getDashboardStats() {
   try {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     const [
       totalUsers,
       totalQuestions,
@@ -26,6 +32,12 @@ async function getDashboardStats() {
       activeExamAttempts,
       totalTransactions,
       recentUsers,
+      completedExamAttempts,
+      passedExamAttempts,
+      lastMonthUsers,
+      lastWeekQuestions,
+      lastMonthExams,
+      lastMonthRevenue,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.question.count(),
@@ -52,9 +64,58 @@ async function getDashboardStats() {
           },
         },
       }),
+      prisma.examAttempt.count({
+        where: { status: "COMPLETED" },
+      }),
+      prisma.examAttempt.count({
+        where: { 
+          status: "COMPLETED",
+          percentage: { gte: 60 } // Assuming 60% is passing score
+        },
+      }),
+      // Last month users for growth calculation
+      prisma.user.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      // Last week questions for growth calculation
+      prisma.question.count({
+        where: {
+          createdAt: {
+            gte: lastWeek,
+          },
+        },
+      }),
+      // Last month exams for growth calculation
+      prisma.exam.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      // Last month revenue for growth calculation
+      prisma.transaction.aggregate({
+        where: {
+          status: "COMPLETED",
+          type: "CREDIT_PURCHASE",
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
     ]);
 
-    // Calculate total revenue (example calculation)
+    // Calculate total revenue
     const revenueData = await prisma.transaction.aggregate({
       where: {
         status: "COMPLETED",
@@ -65,14 +126,62 @@ async function getDashboardStats() {
       },
     });
 
+    // Calculate success rate
+    const successRate = completedExamAttempts > 0 
+      ? ((passedExamAttempts / completedExamAttempts) * 100).toFixed(1)
+      : "0.0";
+
+    // Calculate average duration from completed exams
+    const completedAttemptsWithDuration = await prisma.examAttempt.findMany({
+      where: {
+        status: "COMPLETED",
+        endTime: { not: null }
+      },
+      select: {
+        startTime: true,
+        endTime: true
+      }
+    });
+
+    const avgDuration = completedAttemptsWithDuration.length > 0
+      ? Math.round(
+          completedAttemptsWithDuration.reduce((sum, attempt) => {
+            const duration = attempt.endTime && attempt.startTime 
+              ? (attempt.endTime.getTime() - attempt.startTime.getTime()) / (1000 * 60) // Convert to minutes
+              : 0;
+            return sum + duration;
+          }, 0) / completedAttemptsWithDuration.length
+        )
+      : 0;
+
+    // Calculate growth rates
+    const usersGrowth = lastMonthUsers > 0
+      ? (((totalUsers - lastMonthUsers) / lastMonthUsers) * 100).toFixed(1)
+      : "0.0";
+
+    const examsGrowth = lastMonthExams > 0 ? lastMonthExams : 0;
+    
+    const currentRevenue = revenueData._sum.amount || 0;
+    const lastMonthRevenueAmount = lastMonthRevenue._sum.amount || 0;
+    const revenueGrowth = lastMonthRevenueAmount > 0
+      ? (((currentRevenue - lastMonthRevenueAmount) / lastMonthRevenueAmount) * 100).toFixed(1)
+      : "0.0";
+
     return {
       totalUsers,
       totalQuestions,
       totalExams,
       activeExamAttempts,
       totalTransactions,
-      totalRevenue: revenueData._sum.amount || 0,
+      totalRevenue: currentRevenue,
       recentUsers,
+      completedExamAttempts,
+      successRate,
+      avgDuration,
+      usersGrowth,
+      questionsThisWeek: lastWeekQuestions,
+      examsThisMonth: examsGrowth,
+      revenueGrowth,
     };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -84,6 +193,13 @@ async function getDashboardStats() {
       totalTransactions: 0,
       totalRevenue: 0,
       recentUsers: [],
+      completedExamAttempts: 0,
+      successRate: "0.0",
+      avgDuration: 0,
+      usersGrowth: "0.0",
+      questionsThisWeek: 0,
+      examsThisMonth: 0,
+      revenueGrowth: "0.0",
     };
   }
 }
@@ -95,8 +211,8 @@ export default async function AdminDashboard() {
     {
       title: "Total Students",
       value: stats.totalUsers.toLocaleString(),
-      change: "+12% from last month",
-      changeType: "positive" as const,
+      change: `${parseFloat(stats.usersGrowth) >= 0 ? '+' : ''}${stats.usersGrowth}% from last month`,
+      changeType: parseFloat(stats.usersGrowth) >= 0 ? "positive" as const : "negative" as const,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -104,7 +220,7 @@ export default async function AdminDashboard() {
     {
       title: "Question Bank",
       value: stats.totalQuestions.toLocaleString(),
-      change: "+847 this week",
+      change: `+${stats.questionsThisWeek} this week`,
       changeType: "positive" as const,
       icon: FileQuestion,
       color: "text-green-600",
@@ -113,7 +229,7 @@ export default async function AdminDashboard() {
     {
       title: "Mock Exams",
       value: stats.totalExams.toString(),
-      change: "+5 new exams",
+      change: `+${stats.examsThisMonth} new exams`,
       changeType: "positive" as const,
       icon: GraduationCap,
       color: "text-purple-600",
@@ -131,20 +247,29 @@ export default async function AdminDashboard() {
     {
       title: "Revenue",
       value: `₹${stats.totalRevenue.toLocaleString()}`,
-      change: "+8.2% from last month",
-      changeType: "positive" as const,
+      change: `${parseFloat(stats.revenueGrowth) >= 0 ? '+' : ''}${stats.revenueGrowth}% from last month`,
+      changeType: parseFloat(stats.revenueGrowth) >= 0 ? "positive" as const : "negative" as const,
       icon: DollarSign,
       color: "text-emerald-600",
       bgColor: "bg-emerald-50",
     },
     {
       title: "Success Rate",
-      value: "94.2%",
-      change: "+2.1% improvement",
-      changeType: "positive" as const,
+      value: `${stats.successRate}%`,
+      change: `Based on ${stats.completedExamAttempts} completed exams`,
+      changeType: "neutral" as const,
       icon: Target,
       color: "text-pink-600",
       bgColor: "bg-pink-50",
+    },
+    {
+      title: "Avg Duration",
+      value: `${stats.avgDuration}m`,
+      change: "Average exam completion time",
+      changeType: "neutral" as const,
+      icon: Activity,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
     },
   ];
 
@@ -268,14 +393,14 @@ export default async function AdminDashboard() {
                 <div className="text-sm text-gray-500">Setup mock test</div>
               </a>
 
-              <a
+              <Link
                 href="/admin/users"
                 className="p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-200 transition-colors duration-200 group"
               >
                 <Users className="w-8 h-8 text-green-600 mb-2 group-hover:scale-110 transition-transform duration-200" />
                 <div className="font-medium text-gray-900">Manage Users</div>
                 <div className="text-sm text-gray-500">View all students</div>
-              </a>
+              </Link>
 
               <a
                 href="/admin/analytics"

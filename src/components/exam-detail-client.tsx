@@ -16,6 +16,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import { ExamTaker } from "@/components/exam-taker/exam-taker";
+import PreExamScreen from "@/components/exam-taker/pre-exam-screen";
 
 interface ExamDetailClientProps {
   exam: {
@@ -23,6 +25,8 @@ interface ExamDetailClientProps {
     title: string;
     price: number;
     isFree: boolean;
+    duration?: number;
+    questionsToServe?: number;
   };
 }
 
@@ -34,12 +38,24 @@ export function ExamDetailClient({ exam }: ExamDetailClientProps) {
   const { user, isLoaded } = useUser();
   const [userCredits, setUserCredits] = useState<UserCredits | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPreExamScreen, setShowPreExamScreen] = useState(false);
+  const [examStarted, setExamStarted] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       fetchUserCredits();
     }
   }, [user]);
+
+  // Prevent body scroll when exam is active
+  useEffect(() => {
+    if (examStarted) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [examStarted]);
 
   const fetchUserCredits = async () => {
     try {
@@ -60,6 +76,30 @@ export function ExamDetailClient({ exam }: ExamDetailClientProps) {
     if (!user) return false;
     if (exam.isFree) return true;
     return userCredits && userCredits.credits >= exam.price;
+  };
+
+  const handleLaunchExam = () => {
+    if (canLaunchExam()) {
+      setShowPreExamScreen(true);
+    }
+  };
+
+  const handleStartExam = () => {
+    setShowPreExamScreen(false);
+    setExamStarted(true);
+  };
+
+  const handleCancelPreExam = () => {
+    setShowPreExamScreen(false);
+  };
+
+  const handleExamComplete = () => {
+    setExamStarted(false);
+    setShowPreExamScreen(false);
+    // Refresh user credits after exam completion
+    if (user?.id) {
+      fetchUserCredits();
+    }
   };
 
   const renderActionButton = () => {
@@ -113,7 +153,10 @@ export function ExamDetailClient({ exam }: ExamDetailClientProps) {
 
     if (canLaunchExam()) {
       return (
-        <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+        <Button 
+          onClick={handleLaunchExam}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+        >
           Launch Exam
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -142,6 +185,41 @@ export function ExamDetailClient({ exam }: ExamDetailClientProps) {
       </div>
     );
   };
+
+  // Show pre-exam screen with rules and guidelines in full screen
+  if (showPreExamScreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white">
+        <PreExamScreen
+          examTitle={exam.title}
+          duration={exam.duration || 60}
+          questionsToServe={exam.questionsToServe || 50}
+          examPrice={exam.price}
+          isFree={exam.isFree}
+          onStartExam={handleStartExam}
+          onCancel={handleCancelPreExam}
+        />
+      </div>
+    );
+  }
+
+  // If exam is started, show the exam taker in full screen
+  if (examStarted) {
+    return (
+      <div className="fixed inset-0 z-50 bg-gray-50">
+        <ExamTaker 
+          examId={exam.id}
+          examTitle={exam.title}
+          duration={exam.duration || 60} // Default 60 minutes if not specified
+           questionsToServe={exam.questionsToServe || 50} // Default 50 questions if not specified
+          onExamComplete={() => {
+            // Handle exam completion
+            handleExamComplete();
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <Card className="mb-6">

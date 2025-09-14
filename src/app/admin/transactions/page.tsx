@@ -21,12 +21,20 @@ import {
 
 async function getTransactionsData() {
   try {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       transactions,
       totalRevenue,
       totalTransactions,
       successfulTransactions,
       pendingTransactions,
+      lastMonthRevenue,
+      lastMonthTransactions,
+      lastMonthSuccessful,
+      lastMonthPending,
     ] = await Promise.all([
       prisma.transaction.findMany({
         include: {
@@ -53,7 +61,63 @@ async function getTransactionsData() {
       prisma.transaction.count({
         where: { status: "PENDING" },
       }),
+      // Last month data for growth calculation
+      prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.transaction.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.transaction.count({
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.transaction.count({
+        where: {
+          status: "PENDING",
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
     ]);
+
+    // Calculate growth rates
+    const revenueGrowth = lastMonthRevenue._sum.amount && lastMonthRevenue._sum.amount > 0
+      ? ((((totalRevenue._sum.amount || 0) - lastMonthRevenue._sum.amount) / lastMonthRevenue._sum.amount) * 100).toFixed(1)
+      : "0.0";
+
+    const transactionsGrowth = lastMonthTransactions > 0
+      ? (((totalTransactions - lastMonthTransactions) / lastMonthTransactions) * 100).toFixed(1)
+      : "0.0";
+
+    const currentSuccessRate = totalTransactions > 0 ? (successfulTransactions / totalTransactions) * 100 : 0;
+    const lastMonthSuccessRate = lastMonthTransactions > 0 ? (lastMonthSuccessful / lastMonthTransactions) * 100 : 0;
+    const successRateGrowth = lastMonthSuccessRate > 0
+      ? ((currentSuccessRate - lastMonthSuccessRate) / lastMonthSuccessRate * 100).toFixed(1)
+      : "0.0";
+
+    const pendingGrowth = lastMonthPending > 0
+      ? (((pendingTransactions - lastMonthPending) / lastMonthPending) * 100).toFixed(1)
+      : "0.0";
 
     return {
       transactions,
@@ -63,6 +127,10 @@ async function getTransactionsData() {
       pendingTransactions,
       failedTransactions:
         totalTransactions - successfulTransactions - pendingTransactions,
+      revenueGrowth,
+      transactionsGrowth,
+      successRateGrowth,
+      pendingGrowth,
     };
   } catch (error) {
     console.error("Error fetching transactions data:", error);
@@ -73,6 +141,10 @@ async function getTransactionsData() {
       successfulTransactions: 0,
       pendingTransactions: 0,
       failedTransactions: 0,
+      revenueGrowth: "0.0",
+      transactionsGrowth: "0.0",
+      successRateGrowth: "0.0",
+      pendingGrowth: "0.0",
     };
   }
 }
@@ -87,7 +159,7 @@ export default async function TransactionsPage() {
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100",
-      change: "+12.5%",
+      change: `${parseFloat(data.revenueGrowth) >= 0 ? '+' : ''}${data.revenueGrowth}%`,
     },
     {
       title: "Total Transactions",
@@ -95,7 +167,7 @@ export default async function TransactionsPage() {
       icon: Receipt,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
-      change: "+8.3%",
+      change: `${parseFloat(data.transactionsGrowth) >= 0 ? '+' : ''}${data.transactionsGrowth}%`,
     },
     {
       title: "Success Rate",
@@ -109,7 +181,7 @@ export default async function TransactionsPage() {
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-100",
-      change: "+2.1%",
+      change: `${parseFloat(data.successRateGrowth) >= 0 ? '+' : ''}${data.successRateGrowth}%`,
     },
     {
       title: "Pending",
@@ -117,7 +189,7 @@ export default async function TransactionsPage() {
       icon: Clock,
       color: "text-yellow-600",
       bgColor: "bg-yellow-100",
-      change: "-5.2%",
+      change: `${parseFloat(data.pendingGrowth) >= 0 ? '+' : ''}${data.pendingGrowth}%`,
     },
   ];
 

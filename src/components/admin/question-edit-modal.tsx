@@ -38,7 +38,7 @@ interface Category {
 
 interface Question {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   questionText: string;
   optionA: string;
   optionB: string;
@@ -56,11 +56,7 @@ interface Question {
   category: { name: string };
   subcategory?: { name: string } | null;
   apiResponse?: Record<string, unknown>;
-  figures?: Array<{
-    bbox: number[];
-    confidence: number;
-    url: string;
-  }>;
+  figures?: { bbox: number[]; confidence: number; url: string; }[] | string[]; // Array of figure objects or string URLs
   _count: { examQuestions: number };
   createdAt: Date;
   updatedAt: Date;
@@ -195,15 +191,17 @@ export function QuestionEditModal({
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         {/* Original Image */}
-                        <div className="bg-white p-2 rounded border">
-                          <Image
-                            src={formData.imageUrl}
-                            alt="Question"
-                            width={500}
-                            height={300}
-                            className="w-full max-w-lg mx-auto h-auto rounded border"
-                          />
-                        </div>
+                        {formData.imageUrl && (
+                          <div className="bg-white p-2 rounded border">
+                            <Image
+                              src={formData.imageUrl}
+                              alt="Question"
+                              width={500}
+                              height={300}
+                              className="w-full max-w-lg mx-auto h-auto rounded border"
+                            />
+                          </div>
+                        )}
 
                         {/* Question Text */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
@@ -215,7 +213,7 @@ export function QuestionEditModal({
                         </div>
 
                         {/* Options and Figures in Two Columns */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className={`grid grid-cols-1 gap-4 ${question.figures && question.figures.length > 0 ? 'lg:grid-cols-2' : ''}`}>
                           {/* Options on Left */}
                           <div className="bg-green-50 border border-green-200 rounded-lg p-2">
                             <h5 className="text-xs font-semibold text-green-900 mb-2">
@@ -263,20 +261,31 @@ export function QuestionEditModal({
                                 Figures
                               </h5>
                               <div className="space-y-2">
-                                {question.figures.map((figure, index) => (
-                                  <div
-                                    key={index}
-                                    className="bg-white border rounded p-2"
-                                  >
-                                    <Image
-                                      src={figure.url}
-                                      alt={`Figure ${index + 1}`}
-                                      width={400}
-                                      height={200}
-                                      className="w-full h-auto rounded"
-                                    />
-                                  </div>
-                                ))}
+                                {question.figures?.map((figure, index) => {
+                                  // Handle both string URLs and object format
+                                  const figureUrl = typeof figure === 'string' ? figure : figure.url;
+                                  
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="bg-white border rounded p-2"
+                                    >
+                                      {figureUrl && figureUrl.trim() !== "" ? (
+                                        <Image
+                                          src={figureUrl}
+                                          alt={`Figure ${index + 1}`}
+                                          width={400}
+                                          height={200}
+                                          className="w-full h-auto rounded"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center text-gray-500 text-xs">
+                                          No image available
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           )}

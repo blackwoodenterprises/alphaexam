@@ -12,7 +12,7 @@ import { X, CheckCircle } from "lucide-react";
 
 interface Question {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   questionText: string;
   optionA: string;
   optionB: string;
@@ -30,11 +30,7 @@ interface Question {
   subcategory?: {
     name: string;
   } | null;
-  figures?: Array<{
-    bbox: number[];
-    confidence: number;
-    url: string;
-  }>;
+  figures?: { bbox: number[]; confidence: number; url: string; }[] | string[]; // Array of figure objects or string URLs
 }
 
 interface QuestionPreviewProps {
@@ -82,15 +78,17 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     {/* Original Image at Top */}
-                    <div className="bg-white p-3 rounded border">
-                      <Image
-                        src={question.imageUrl}
-                        alt="Question"
-                        width={600}
-                        height={400}
-                        className="w-full max-w-2xl mx-auto h-auto rounded border"
-                      />
-                    </div>
+                    {question.imageUrl && (
+                      <div className="bg-white p-3 rounded border">
+                        <Image
+                          src={question.imageUrl}
+                          alt="Question"
+                          width={600}
+                          height={400}
+                          className="w-full max-w-2xl mx-auto h-auto rounded border"
+                        />
+                      </div>
+                    )}
 
                     {/* Question Text */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -102,7 +100,7 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                     </div>
 
                     {/* Options and Figures in Two Columns */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className={`grid grid-cols-1 gap-6 ${question.figures && question.figures.length > 0 ? 'lg:grid-cols-2' : ''}`}>
                       {/* Options on Left */}
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <h5 className="text-sm font-semibold text-green-900 mb-2">Answer Options</h5>
@@ -141,17 +139,28 @@ export function QuestionPreview({ question, children }: QuestionPreviewProps) {
                         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                           <h5 className="text-sm font-semibold text-gray-900 mb-2">Figures</h5>
                           <div className="space-y-3">
-                            {question.figures.map((figure, index) => (
-                              <div key={index} className="bg-white border rounded p-3">
-                                <Image 
-                                  src={figure.url} 
-                                  alt={`Figure ${index + 1}`}
-                                  width={400}
-                                  height={200}
-                                  className="w-full h-auto rounded mb-2"
-                                />
-                              </div>
-                            ))}
+                            {question.figures.map((figure, index) => {
+                              // Handle both string URLs and object format
+                              const figureUrl = typeof figure === 'string' ? figure : figure.url;
+                              
+                              return (
+                                <div key={index} className="bg-white border rounded p-3">
+                                  {figureUrl && figureUrl.trim() !== "" ? (
+                                    <Image 
+                                      src={figureUrl} 
+                                      alt={`Figure ${index + 1}`}
+                                      width={400}
+                                      height={200}
+                                      className="w-full h-auto rounded mb-2"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-32 bg-gray-100 rounded mb-2 flex items-center justify-center text-gray-500 text-sm">
+                                      No image available
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

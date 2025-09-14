@@ -36,7 +36,7 @@ async function getExams() {
 
 async function getExamStats() {
   try {
-    const [totalExams, activeExams, totalAttempts, totalRevenue] =
+    const [totalExams, activeExams, totalAttempts, totalRevenue, completedAttempts, lastMonthAttempts] =
       await Promise.all([
         prisma.exam.count(),
         prisma.exam.count({ where: { isActive: true } }),
@@ -49,13 +49,55 @@ async function getExamStats() {
             amount: true,
           },
         }),
+        prisma.examAttempt.count({
+          where: { status: "COMPLETED" },
+        }),
+        prisma.examAttempt.count({
+          where: {
+            status: "COMPLETED",
+            createdAt: {
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+            },
+          },
+        }),
       ]);
+
+    // Calculate average duration from completed exams
+    const completedAttemptsWithDuration = await prisma.examAttempt.findMany({
+      where: {
+        status: "COMPLETED",
+        endTime: { not: null }
+      },
+      select: {
+        startTime: true,
+        endTime: true
+      }
+    });
+
+    const avgDuration = completedAttemptsWithDuration.length > 0
+      ? Math.round(
+          completedAttemptsWithDuration.reduce((sum, attempt) => {
+            const duration = attempt.endTime && attempt.startTime 
+              ? (attempt.endTime.getTime() - attempt.startTime.getTime()) / (1000 * 60) // Convert to minutes
+              : 0;
+            return sum + duration;
+          }, 0) / completedAttemptsWithDuration.length
+        )
+      : 0;
+
+    // Calculate monthly growth
+    const previousMonthAttempts = completedAttempts - lastMonthAttempts;
+    const monthlyGrowth = previousMonthAttempts > 0 
+      ? Math.round(((lastMonthAttempts - previousMonthAttempts) / previousMonthAttempts) * 100)
+      : 0;
 
     return {
       totalExams,
       activeExams,
       totalAttempts,
       totalRevenue: totalRevenue._sum.amount || 0,
+      avgDuration,
+      monthlyGrowth,
     };
   } catch (error) {
     console.error("Error fetching exam stats:", error);
@@ -64,6 +106,8 @@ async function getExamStats() {
       activeExams: 0,
       totalAttempts: 0,
       totalRevenue: 0,
+      avgDuration: 0,
+      monthlyGrowth: 0,
     };
   }
 }

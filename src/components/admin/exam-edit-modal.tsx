@@ -68,19 +68,19 @@ export function ExamEditModal({
     imageUrl: "",
   });
 
-  const fetchExamCategories = async () => {
-    try {
-      const response = await fetch("/api/admin/exam-categories");
-      if (response.ok) {
-        const categories = await response.json();
-        setExamCategories(categories);
-      }
-    } catch (error) {
-      console.error("Error fetching exam categories:", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchExamCategories = async () => {
+      try {
+        const response = await fetch("/api/admin/exam-categories");
+        if (response.ok) {
+          const categories = await response.json();
+          setExamCategories(categories);
+        }
+      } catch (error) {
+        console.error("Error fetching exam categories:", error);
+      }
+    };
+
     if (isOpen) {
       fetchExamCategories();
     }

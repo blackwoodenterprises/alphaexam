@@ -12,9 +12,7 @@ import {
   Clock,
   Users,
   GraduationCap,
-  Star,
-  Target,
-  Calendar,
+  Database,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -110,191 +108,155 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
       <Header />
       <main className="py-8">
         <div className="container-restricted px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-          <Link href="/" className="hover:text-purple-600">
-            Home
-          </Link>
-          <span>/</span>
-          <Link href="/exams" className="hover:text-purple-600">
-            Exams
-          </Link>
-          <span>/</span>
-          <span className="text-gray-900">{exam.title}</span>
-        </nav>
+          {/* Breadcrumb */}
+          <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
+            <Link href="/" className="hover:text-purple-600">
+              Home
+            </Link>
+            <span>/</span>
+            <Link href="/exams" className="hover:text-purple-600">
+              Exams
+            </Link>
+            <span>/</span>
+            <span className="text-gray-900">{exam.title}</span>
+          </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Exam Header */}
-            <Card className="mb-6">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      getCategoryColor(exam.examCategory?.name || 'Unknown')
-                    }`}
-                  >
-                    <span className="mr-2">
-                      {getCategoryIcon(exam.examCategory?.name || 'Unknown')}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2">
+              {/* Exam Header */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-4">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(
+                        exam.examCategory?.name || "Unknown"
+                      )}`}
+                    >
+                      <span className="mr-2">
+                        {getCategoryIcon(exam.examCategory?.name || "Unknown")}
+                      </span>
+                      {exam.examCategory?.name || "Unknown"}
                     </span>
-                    {exam.examCategory?.name || 'Unknown'}
-                  </span>
-                  {exam.isFree ? (
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                      Free
-                    </span>
-                  ) : (
-                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                      {exam.price} Credits
-                    </span>
-                  )}
-                </div>
-                <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
-                  {exam.title}
-                </CardTitle>
-                <CardDescription className="text-lg text-gray-600">
-                  {exam.description ||
-                    "Comprehensive mock test to assess your knowledge and preparation level."}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+                    {exam.isFree ? (
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Free
+                      </span>
+                    ) : (
+                      <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {exam.price} Credits
+                      </span>
+                    )}
+                  </div>
+                  <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
+                    {exam.title}
+                  </CardTitle>
+                  <CardDescription className="text-lg text-gray-600">
+                    {exam.description ||
+                      "Comprehensive mock test to assess your knowledge and preparation level."}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
 
-            {/* Exam Stats */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900">
-                  Exam Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <GraduationCap className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">
-                      {exam.questionsToServe}
-                    </div>
-                    <div className="text-sm text-gray-600">Questions</div>
+              {/* Exam Description */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-gray-900">
+                    About This Exam
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose max-w-none">
+                    {exam.richDescription ? (
+                      <div
+                        className="text-gray-700 leading-relaxed rich-text-content"
+                        dangerouslySetInnerHTML={{
+                          __html: exam.richDescription,
+                        }}
+                      />
+                    ) : (
+                      <p className="text-gray-700 leading-relaxed">
+                        {exam.description ||
+                          "This comprehensive mock test is designed to evaluate your understanding and preparation level. It covers all important topics and follows the latest exam pattern to give you a realistic test experience."}
+                      </p>
+                    )}
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">
-                      {exam.duration}
-                    </div>
-                    <div className="text-sm text-gray-600">Minutes</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">
-                      {exam._count.examAttempts}
-                    </div>
-                    <div className="text-sm text-gray-600">Attempts</div>
-                  </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <Target className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">
-                      Medium
-                    </div>
-                    <div className="text-sm text-gray-600">Difficulty</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Exam Description */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900">
-                  About This Exam
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose max-w-none">
-                  {exam.richDescription ? (
-                    <div 
-                      className="text-gray-700 leading-relaxed rich-text-content"
-                      dangerouslySetInnerHTML={{ __html: exam.richDescription }}
-                    />
-                  ) : (
-                    <p className="text-gray-700 leading-relaxed">
-                      {exam.description ||
-                        "This comprehensive mock test is designed to evaluate your understanding and preparation level. It covers all important topics and follows the latest exam pattern to give you a realistic test experience."}
-                    </p>
-                  )}
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              {/* Launch Exam Card */}
+              <ExamDetailClient
+                exam={{
+                  id: exam.id,
+                  title: exam.title,
+                  price: exam.price,
+                  isFree: exam.isFree,
+                  duration: exam.duration,
+                  questionsToServe: exam.questionsToServe || undefined,
+                }}
+              />
 
-                </div>
-              </CardContent>
-            </Card>
+              {/* Exam Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-gray-900">
+                    Exam Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <GraduationCap className="w-6 h-6 text-purple-600" />
+                        <span className="text-sm font-medium text-gray-700">
+                          Questions to Serve
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">
+                        {exam.questionsToServe || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Database className="w-6 h-6 text-indigo-600" />
+                        <span className="text-sm font-medium text-gray-700">
+                          Question Bank
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">
+                        {exam._count.examQuestions}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Clock className="w-6 h-6 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-700">
+                          Duration
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">
+                        {exam.duration} min
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Users className="w-6 h-6 text-green-600" />
+                        <span className="text-sm font-medium text-gray-700">
+                          Attempts
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">
+                        {exam._count.examAttempts}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Launch Exam Card */}
-            <ExamDetailClient exam={exam} />
-
-            {/* Rating */}
-            <Card className="mb-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold text-gray-900">
-                  Student Rating
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                  </div>
-                  <span className="text-xl font-bold text-gray-900">4.8</span>
-                  <span className="text-gray-600">({exam._count.examAttempts} reviews)</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Highly rated by students for comprehensive coverage and quality questions.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold text-gray-900">
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Users className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {exam._count.examAttempts} students attempted
-                      </p>
-                      <p className="text-xs text-gray-600">This month</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Updated recently
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {new Date(exam.updatedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
         </div>
       </main>
       <Footer />

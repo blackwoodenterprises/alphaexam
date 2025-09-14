@@ -47,11 +47,7 @@ interface ProcessingResponse {
   success: boolean;
   originalImageUrl: string;
   processedImageUrl: string;
-  figures: Array<{
-    bbox: number[];
-    confidence: number;
-    url: string;
-  }>;
+  figures: string[] | { bbox: number[]; confidence: number; url: string; }[]; // Array of figure URLs or objects
   questionText: string;
   options: {
     A: string;
@@ -65,7 +61,7 @@ interface ProcessingResponse {
     description: string;
     id: string;
   }>;
-  rawApiResponse: Record<string, unknown>;
+  apiResponse: Record<string, unknown>; // Complete API response
 }
 
 export function QuestionUploadModal({
@@ -180,7 +176,7 @@ export function QuestionUploadModal({
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        apiResponse: processedData,
+        apiResponse: processedData?.apiResponse || processedData,
         figures: processedData?.figures || [],
         categoryId: formData.categoryId,
         subcategoryId: formData.subcategoryId || null,
@@ -427,18 +423,28 @@ export function QuestionUploadModal({
                             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                               <h5 className="text-sm font-semibold text-gray-900 mb-2">Figures Detected</h5>
                               <div className="space-y-3">
-                                {processedData.figures.map((figure, index: number) => (
-                                  <div key={index} className="bg-white border rounded p-3">
-                                    <Image 
-                                      src={figure.url} 
-                                      alt={`Figure ${index + 1}`}
-                                      width={300}
-                                      height={200}
-                                      className="w-full h-auto rounded mb-2"
-                                    />
-
-                                  </div>
-                                ))}
+                                {processedData.figures.map((figure, index: number) => {
+                                  // Handle both string URLs and object format
+                                  const figureUrl = typeof figure === 'string' ? figure : figure.url;
+                                  
+                                  return (
+                                    <div key={index} className="bg-white border rounded p-3">
+                                      {figureUrl && figureUrl.trim() !== "" ? (
+                                        <Image 
+                                          src={figureUrl} 
+                                          alt={`Figure ${index + 1}`}
+                                          width={300}
+                                          height={200}
+                                          className="w-full h-auto rounded mb-2"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-24 bg-gray-100 rounded mb-2 flex items-center justify-center text-gray-500 text-sm">
+                                          No image available
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           )}

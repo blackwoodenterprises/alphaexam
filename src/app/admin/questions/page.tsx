@@ -68,8 +68,13 @@ async function getCategories() {
 export default async function QuestionsPage() {
   const questions = await getQuestions();
   const categories = await getCategories();
+  const totalQuestionsCount = await prisma.question.count();
 
   return (
-    <QuestionsPageClient questions={questions} categories={categories} />
+    <QuestionsPageClient 
+      questions={questions} 
+      categories={categories}
+      totalQuestionsCount={totalQuestionsCount} 
+    />
   );
 }

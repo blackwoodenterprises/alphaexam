@@ -15,6 +15,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ArrowRight, Phone, Target, BookOpen, CreditCard } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { OnboardingLoading } from "@/components/ui/onboarding-loading";
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
@@ -183,47 +186,36 @@ export default function OnboardingPage() {
                 Help us stay connected with you for important updates
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  value={formData.phoneNumber}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      phoneNumber: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  We&apos;ll use this for exam notifications and support
-                </p>
-              </div>
+            <CardContent className="space-y-6">
+              <PhoneInput
+                label="Phone Number"
+                value={formData.phoneNumber}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    phoneNumber: value,
+                  }))
+                }
+                placeholder="Enter your phone number"
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  value={formData.dateOfBirth}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      dateOfBirth: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  This helps us provide age-appropriate content
-                </p>
-              </div>
+              <DatePicker
+                label="Date of Birth"
+                value={formData.dateOfBirth}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    dateOfBirth: value,
+                  }))
+                }
+                placeholder="Select your date of birth"
+                maxDate={new Date().toISOString().split('T')[0]} // Can't be born in the future
+                required
+              />
+              <p className="text-xs text-gray-500 -mt-2">
+                This helps us provide age-appropriate content
+              </p>
 
               <Button
                 onClick={() => setStep(2)}
@@ -420,6 +412,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <OnboardingLoading isVisible={isLoading} />
       <Header />
 
       <main className="py-12">

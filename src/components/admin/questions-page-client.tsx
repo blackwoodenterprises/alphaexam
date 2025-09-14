@@ -20,7 +20,7 @@ import { ConfirmationDialog } from "@/components/ui/dialog";
 // Type definitions
 interface Question {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   questionText: string;
   optionA: string;
   optionB: string;
@@ -38,11 +38,7 @@ interface Question {
   category: { name: string };
   subcategory?: { name: string } | null;
   apiResponse?: Record<string, unknown>;
-  figures?: Array<{
-    bbox: number[];
-    confidence: number;
-    url: string;
-  }>;
+  figures?: { bbox: number[]; confidence: number; url: string; }[]; // Array of figure objects
   _count: { examQuestions: number };
   createdAt: Date;
   updatedAt: Date;
@@ -86,11 +82,13 @@ function QuestionTextDisplay({ questionText }: { questionText: string }) {
 interface QuestionsPageClientProps {
   questions: Question[];
   categories: Category[];
+  totalQuestionsCount: number;
 }
 
 export function QuestionsPageClient({ 
   questions: initialQuestions, 
-  categories 
+  categories,
+  totalQuestionsCount 
 }: QuestionsPageClientProps) {
   const [questions, setQuestions] = useState(initialQuestions);
   const [filteredQuestions, setFilteredQuestions] = useState(initialQuestions);
@@ -261,7 +259,7 @@ export function QuestionsPageClient({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">
-              {filteredQuestions.length.toLocaleString()}
+              {totalQuestionsCount.toLocaleString()}
             </div>
             <p className="text-xs text-green-600">AI Processed</p>
           </CardContent>

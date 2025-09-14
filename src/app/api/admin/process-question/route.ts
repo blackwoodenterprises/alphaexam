@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/lib/auth';
 
+interface Figure {
+  url: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Starting image processing request');
@@ -98,11 +102,16 @@ export async function POST(request: NextRequest) {
 
     // Extract and structure the data for our application
     console.log('🔄 Extracting and structuring data for application');
+    
+    // Extract figures URLs from processed_images.figures array
+    const figuresArray = processedData.processed_images?.figures?.map((figure: Figure) => figure.url) || [];
+    console.log('📸 Extracted figures URLs:', figuresArray);
+    
     const extractedData = {
       success: true,
       originalImageUrl: processedData.original_image_url,
       processedImageUrl: processedData.processed_images?.processed_image,
-      figures: processedData.processed_images?.figures || [],
+      figures: figuresArray, // Store array of figure URLs for database
       questionText: processedData.transcription?.transcription?.question_text || '',
       options: {
         A: processedData.transcription?.transcription?.options?.A || '',
@@ -113,7 +122,7 @@ export async function POST(request: NextRequest) {
       figuresDetected: processedData.transcription?.figures_detected || 0,
       confidence: processedData.transcription?.transcription?.confidence || 0,
       figureDescriptions: processedData.transcription?.transcription?.figures || [],
-      rawApiResponse: processedData, // Store the complete raw response
+      apiResponse: processedData, // Store the complete raw API response for database
     };
 
     console.log('✅ Data extraction completed successfully');

@@ -15,6 +15,10 @@ import {
 
 async function getAnalyticsData() {
   try {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       totalUsers,
       totalExams,
@@ -24,6 +28,11 @@ async function getAnalyticsData() {
       recentActivity,
       categoryStats,
       monthlyStats,
+      completedAttempts,
+      lastMonthUsers,
+      lastMonthExams,
+      lastMonthAttempts,
+      lastMonthAvgScore,
     ] = await Promise.all([
       // Total users
       prisma.user.count(),
@@ -75,17 +84,111 @@ async function getAnalyticsData() {
           },
         },
       }),
+
+      // Completed attempts
+      prisma.examAttempt.count({
+        where: { status: "COMPLETED" },
+      }),
+
+      // Last month data for growth calculation
+      prisma.user.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.exam.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.examAttempt.count({
+        where: {
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.examAttempt.aggregate({
+        _avg: { percentage: true },
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: lastMonth,
+            lt: thisMonth,
+          },
+        },
+      }),
     ]);
+
+    // Calculate completion rate
+    const completionRate = totalAttempts > 0 
+      ? Math.round((completedAttempts / totalAttempts) * 100)
+      : 0;
+
+    // Calculate average duration from completed exams
+    const completedAttemptsWithDuration = await prisma.examAttempt.findMany({
+      where: {
+        status: "COMPLETED",
+        endTime: { not: null }
+      },
+      select: {
+        startTime: true,
+        endTime: true
+      }
+    });
+
+    const avgDuration = completedAttemptsWithDuration.length > 0
+      ? Math.round(
+          completedAttemptsWithDuration.reduce((sum, attempt) => {
+            const duration = attempt.endTime && attempt.startTime 
+              ? (attempt.endTime.getTime() - attempt.startTime.getTime()) / (1000 * 60) // Convert to minutes
+              : 0;
+            return sum + duration;
+          }, 0) / completedAttemptsWithDuration.length
+        )
+      : 0;
+
+    // Calculate growth rates
+    const usersGrowth = lastMonthUsers > 0
+      ? (((totalUsers - lastMonthUsers) / lastMonthUsers) * 100).toFixed(0)
+      : "0";
+
+    const examsGrowth = lastMonthExams > 0
+      ? (((totalExams - lastMonthExams) / lastMonthExams) * 100).toFixed(0)
+      : "0";
+
+    const attemptsGrowth = lastMonthAttempts > 0
+      ? (((totalAttempts - lastMonthAttempts) / lastMonthAttempts) * 100).toFixed(0)
+      : "0";
+
+    const currentAvgScore = avgScore._avg?.percentage || 0;
+    const lastMonthScore = lastMonthAvgScore._avg?.percentage || 0;
+    const scoreGrowth = lastMonthScore > 0
+      ? (((currentAvgScore - lastMonthScore) / lastMonthScore) * 100).toFixed(0)
+      : "0";
 
     return {
       totalUsers,
       totalExams,
       totalQuestions,
       totalAttempts,
-      avgScore: avgScore._avg?.percentage || 0,
+      avgScore: currentAvgScore,
       recentActivity,
       categoryStats,
       monthlyStats,
+      completionRate,
+      avgDuration,
+      usersGrowth,
+      examsGrowth,
+      attemptsGrowth,
+      scoreGrowth,
     };
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -98,6 +201,12 @@ async function getAnalyticsData() {
       recentActivity: 0,
       categoryStats: [],
       monthlyStats: [],
+      completionRate: 0,
+      avgDuration: 0,
+      usersGrowth: "0",
+      examsGrowth: "0",
+      attemptsGrowth: "0",
+      scoreGrowth: "0",
     };
   }
 }
@@ -109,8 +218,8 @@ export default async function AnalyticsPage() {
     {
       title: "Total Users",
       value: analytics.totalUsers,
-      change: "+12%",
-      trend: "up",
+      change: `${parseFloat(analytics.usersGrowth) >= 0 ? '+' : ''}${analytics.usersGrowth}%`,
+      trend: parseFloat(analytics.usersGrowth) >= 0 ? "up" : "down",
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
@@ -118,8 +227,8 @@ export default async function AnalyticsPage() {
     {
       title: "Total Exams",
       value: analytics.totalExams,
-      change: "+5%",
-      trend: "up",
+      change: `${parseFloat(analytics.examsGrowth) >= 0 ? '+' : ''}${analytics.examsGrowth}%`,
+      trend: parseFloat(analytics.examsGrowth) >= 0 ? "up" : "down",
       icon: BookOpen,
       color: "text-green-600",
       bgColor: "bg-green-100",
@@ -127,8 +236,8 @@ export default async function AnalyticsPage() {
     {
       title: "Exam Attempts",
       value: analytics.totalAttempts,
-      change: "+23%",
-      trend: "up",
+      change: `${parseFloat(analytics.attemptsGrowth) >= 0 ? '+' : ''}${analytics.attemptsGrowth}%`,
+      trend: parseFloat(analytics.attemptsGrowth) >= 0 ? "up" : "down",
       icon: Target,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
@@ -136,8 +245,8 @@ export default async function AnalyticsPage() {
     {
       title: "Average Score",
       value: `${Math.round(analytics.avgScore)}%`,
-      change: "+3%",
-      trend: "up",
+      change: `${parseFloat(analytics.scoreGrowth) >= 0 ? '+' : ''}${analytics.scoreGrowth}%`,
+      trend: parseFloat(analytics.scoreGrowth) >= 0 ? "up" : "down",
       icon: Trophy,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -159,13 +268,13 @@ export default async function AnalyticsPage() {
     },
     {
       title: "Completion Rate",
-      value: "87%",
+      value: `${analytics.completionRate}%`,
       subtitle: "Users completing exams",
       icon: TrendingUp,
     },
     {
       title: "Avg Duration",
-      value: "45m",
+      value: `${analytics.avgDuration}m`,
       subtitle: "Average exam time",
       icon: Clock,
     },
