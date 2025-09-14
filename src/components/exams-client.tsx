@@ -32,7 +32,7 @@ interface Exam {
   description: string | null;
   price: number;
   duration: number;
-  questionsToServe: number;
+  questionsToServe: number | null;
   isFree: boolean;
   examCategory: ExamCategory | null;
   _count: {
@@ -301,7 +301,7 @@ export function ExamsClient({ initialExams, examCategories }: ExamsClientProps) 
                     <div className="flex items-center justify-center space-x-1 bg-gray-50 rounded-lg p-2">
                       <GraduationCap className="w-4 h-4" />
                       <span className="font-medium">
-                        {exam.questionsToServe}
+                        {exam.questionsToServe || 'N/A'}
                       </span>
                     </div>
                     <div className="flex items-center justify-center space-x-1 bg-gray-50 rounded-lg p-2">

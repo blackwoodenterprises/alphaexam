@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -498,7 +499,7 @@ export default function OnboardingPage() {
         </div>
       </main>
 
-
+      <Footer />
     </div>
   );
 }

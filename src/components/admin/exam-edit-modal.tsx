@@ -28,7 +28,7 @@ interface Exam {
   description: string | null;
   richDescription?: string | null;
   duration: number;
-  questionsToServe: number;
+  questionsToServe: number | null;
   price: number;
   isFree: boolean;
   isActive: boolean;

@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Update user with onboarding data and add 100 bonus credits
     const newCredits = existingUser.credits + 100;
     
-    const [user, _transaction] = await Promise.all([
+    const [user] = await Promise.all([
       prisma.user.update({
         where: { clerkId: userId },
         data: {
