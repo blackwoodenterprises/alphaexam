@@ -13,7 +13,6 @@ import {
   GraduationCap,
   TrendingUp,
   DollarSign,
-  Clock,
   Target,
   Activity,
 } from "lucide-react";

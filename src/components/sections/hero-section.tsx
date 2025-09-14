@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { TypingAnimation } from "@/components/ui/typing-animation";
 import { ArrowRight, BookOpen, Trophy, Users, Zap } from "lucide-react";
 
 export function HeroSection() {
@@ -20,11 +21,14 @@ export function HeroSection() {
 
           {/* Main heading */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 mb-6">
-            Master
-            <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-              {" "}
-              Olympiads
-            </span>
+            Master{" "}
+            <TypingAnimation
+              words={["Olympiads", "IIT-JEE", "NEET", "JEE Advanced", "KVPY", "NTSE", "IMO", "RMO"]}
+              className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
+              typingSpeed={120}
+              deletingSpeed={80}
+              delayBetweenWords={2500}
+            />
             <br />
             with AlphaExam
           </h1>

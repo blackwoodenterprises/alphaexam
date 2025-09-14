@@ -90,31 +90,31 @@ export function FeaturesSection() {
         {/* Additional feature highlight */}
         <div className="mt-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-white text-center">
           <h3 className="text-2xl md:text-3xl font-bold mb-4">
-            Advanced Question Processing
+            Smart Learning Technology
           </h3>
           <p className="text-lg md:text-xl opacity-90 max-w-3xl mx-auto mb-8">
-            Our AI-powered system processes mathematical equations and diagrams
-            with 99.9% accuracy, ensuring perfect rendering of complex formulas
-            and geometric figures.
+            Our cutting-edge AI algorithms analyze your performance patterns and
+            provide personalized insights to accelerate your learning journey
+            with precision-driven recommendations.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-3xl font-bold mb-2">LaTeX</div>
+              <div className="text-3xl font-bold mb-2">AI Analytics</div>
               <div className="text-sm opacity-80">
-                Mathematical notation support
+                Performance pattern recognition
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-3xl font-bold mb-2">MathJax</div>
+              <div className="text-3xl font-bold mb-2">Real-time Sync</div>
               <div className="text-sm opacity-80">
-                Real-time formula rendering
+                Cross-device progress tracking
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-3xl font-bold mb-2">AI OCR</div>
+              <div className="text-3xl font-bold mb-2">Smart Hints</div>
               <div className="text-sm opacity-80">
-                Intelligent image processing
+                Adaptive learning assistance
               </div>
             </div>
           </div>

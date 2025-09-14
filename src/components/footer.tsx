@@ -13,20 +13,7 @@ import {
 } from "lucide-react";
 
 export function Footer() {
-  // Static product links - no database dependency
-  const productLinks = [
-    { name: "JEE Tests", href: "/exams?category=jee" },
-    { name: "NEET Tests", href: "/exams?category=neet" },
-    { name: "GATE Tests", href: "/exams?category=gate" },
-    { name: "CAT Tests", href: "/exams?category=cat" },
-    { name: "Question Bank", href: "/questions" },
-  ];
-
   const footerSections = [
-    {
-      title: "Product",
-      links: productLinks,
-    },
     {
       title: "Company",
       links: [
@@ -66,7 +53,7 @@ export function Footer() {
   return (
     <footer className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-t border-purple-100">
       <div className="container-restricted px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Company Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="flex items-center space-x-2">
@@ -116,7 +103,7 @@ export function Footer() {
 
           {/* Footer Links */}
           {footerSections.map((section) => (
-            <div key={section.title} className="space-y-4">
+            <div key={section.title} className="space-y-4 lg:col-span-1">
               <h3 className="font-semibold text-gray-900">{section.title}</h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (

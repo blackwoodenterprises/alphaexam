@@ -66,7 +66,7 @@ CREATE TABLE "public"."subcategories" (
 -- CreateTable
 CREATE TABLE "public"."questions" (
     "id" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "questionText" TEXT NOT NULL,
     "optionA" TEXT NOT NULL,
     "optionB" TEXT NOT NULL,
@@ -105,6 +105,7 @@ CREATE TABLE "public"."exams" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "richDescription" TEXT,
     "price" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "duration" INTEGER NOT NULL,
     "questionsToServe" INTEGER,
@@ -142,6 +143,7 @@ CREATE TABLE "public"."exam_attempts" (
     "totalMarks" DOUBLE PRECISION,
     "percentage" DOUBLE PRECISION,
     "creditsUsed" DOUBLE PRECISION NOT NULL,
+    "servedQuestions" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -212,10 +214,10 @@ ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_categoryId_fkey" FORE
 ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "public"."subcategories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_examCategoryId_fkey" FOREIGN KEY ("examCategoryId") REFERENCES "public"."exam_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."exams" ADD CONSTRAINT "exams_examCategoryId_fkey" FOREIGN KEY ("examCategoryId") REFERENCES "public"."exam_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."exam_questions" ADD CONSTRAINT "exam_questions_examId_fkey" FOREIGN KEY ("examId") REFERENCES "public"."exams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -224,10 +226,10 @@ ALTER TABLE "public"."exam_questions" ADD CONSTRAINT "exam_questions_examId_fkey
 ALTER TABLE "public"."exam_questions" ADD CONSTRAINT "exam_questions_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "public"."questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."exam_attempts" ADD CONSTRAINT "exam_attempts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."exam_attempts" ADD CONSTRAINT "exam_attempts_examId_fkey" FOREIGN KEY ("examId") REFERENCES "public"."exams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."exam_attempts" ADD CONSTRAINT "exam_attempts_examId_fkey" FOREIGN KEY ("examId") REFERENCES "public"."exams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."exam_attempts" ADD CONSTRAINT "exam_attempts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."exam_answers" ADD CONSTRAINT "exam_answers_attemptId_fkey" FOREIGN KEY ("attemptId") REFERENCES "public"."exam_attempts"("id") ON DELETE CASCADE ON UPDATE CASCADE;

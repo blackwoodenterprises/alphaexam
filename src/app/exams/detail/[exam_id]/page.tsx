@@ -159,14 +159,14 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
               </Card>
 
               {/* Exam Description */}
-              <Card className="mb-6">
+              <Card>
                 <CardHeader>
                   <CardTitle className="text-xl font-semibold text-gray-900">
                     About This Exam
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="prose max-w-none">
+                <CardContent className="pt-0">
+                  <div className="max-w-none">
                     {exam.richDescription ? (
                       <div
                         className="text-gray-700 leading-relaxed rich-text-content"
