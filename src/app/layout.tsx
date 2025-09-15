@@ -29,12 +29,21 @@ export const metadata: Metadata = {
     title: "AlphaExam - India's Best Online Mock Testing Platform",
     description:
       "Take mock tests for mathematical olympiads, JEE, NEET and other competitive exams.",
+    images: [
+      {
+        url: "/ogimage.png",
+        width: 1200,
+        height: 630,
+        alt: "AlphaExam - India's Best Online Mock Testing Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AlphaExam - India's Best Online Mock Testing Platform",
     description:
       "Take mock tests for mathematical olympiads, JEE, NEET and other competitive exams.",
+    images: ["/ogimage.png"],
   },
   robots: {
     index: true,
