@@ -107,7 +107,7 @@ export default async function ExamsPage() {
                   <Link href="/sign-up" className="inline-block">
                     <Button
                       size="lg"
-                      className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 font-semibold"
+                      className="w-full sm:w-auto bg-white text-purple-600 hover:bg-purple-600 hover:text-white px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 btn-animate"
                     >
                       Get Started Free
                     </Button>
@@ -116,7 +116,7 @@ export default async function ExamsPage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="w-full sm:w-auto border-2 border-white/90 text-white hover:bg-white hover:text-purple-600 px-8 py-3 font-semibold backdrop-blur-sm bg-white/10"
+                      className="w-full sm:w-auto border-2 border-white/90 text-white hover:bg-white/20 hover:border-white hover:text-white px-8 py-3 font-semibold backdrop-blur-sm bg-white/10 transition-all duration-200 btn-animate"
                     >
                       View Dashboard
                     </Button>

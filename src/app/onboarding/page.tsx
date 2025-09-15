@@ -22,6 +22,7 @@ import { OnboardingLoading } from "@/components/ui/onboarding-loading";
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
 
   // Handle authentication at the top level
   useEffect(() => {
@@ -40,12 +41,14 @@ export default function OnboardingPage() {
             const userData = await response.json();
             if (userData.user && userData.user.onboardingComplete) {
               router.push('/dashboard');
+              return;
             }
           }
         } catch (error) {
           console.error('Error checking onboarding status:', error);
         }
       }
+      setIsCheckingOnboarding(false);
     };
 
     checkOnboardingStatus();
@@ -394,7 +397,7 @@ export default function OnboardingPage() {
   };
 
   // Show loading state while checking authentication
-  if (!isLoaded) {
+  if (!isLoaded || isCheckingOnboarding) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

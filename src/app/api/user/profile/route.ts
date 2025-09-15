@@ -70,6 +70,7 @@ export async function GET() {
         lastName: user.lastName,
         email: user.email,
         credits: user.credits,
+        onboardingComplete: user.onboardingComplete,
       },
       examAttempts: transformedExamAttempts,
     });

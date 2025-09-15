@@ -44,64 +44,25 @@ export function CTASection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/sign-up">
+            <Link href="/sign-up" className="inline-block">
               <Button
                 size="lg"
-                className="bg-white text-purple-600 hover:bg-gray-50 btn-animate text-lg px-8 py-4 h-auto font-semibold"
+                className="w-full sm:w-auto bg-white text-purple-600 hover:bg-purple-600 hover:text-white btn-animate text-lg px-8 py-4 h-auto font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
 
-            <Link href="/exams">
+            <Link href="/exams" className="inline-block">
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/90 text-white hover:bg-white hover:text-purple-600 btn-animate text-lg px-8 py-4 h-auto backdrop-blur-sm bg-white/10"
+                className="w-full sm:w-auto border-2 border-white/90 text-white hover:bg-white/20 hover:border-white hover:text-white btn-animate text-lg px-8 py-4 h-auto backdrop-blur-sm bg-white/10 transition-all duration-200"
               >
                 Browse Exams
               </Button>
             </Link>
-          </div>
-
-          {/* Trust indicators */}
-          <div className="mt-12 text-center">
-            <p className="text-white/80 mb-4">
-              Join students from top institutions
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-6 opacity-70">
-              <div className="text-white/90 font-medium bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                IIT
-              </div>
-              <div className="text-white/90 font-medium bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                NIT
-              </div>
-              <div className="text-white/90 font-medium bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                AIIMS
-              </div>
-              <div className="text-white/90 font-medium bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                BITS
-              </div>
-              <div className="text-white/90 font-medium bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                ISI
-              </div>
-            </div>
-          </div>
-
-          {/* Special offer */}
-          <div className="mt-16 inline-flex items-center bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-            <div className="text-left">
-              <div className="text-sm font-medium text-white/80">
-                Limited Time Offer
-              </div>
-              <div className="text-lg font-bold text-white">
-                Get 50% off on your first purchase
-              </div>
-              <div className="text-sm text-white/80">
-                Use code: ALPHA50 at checkout
-              </div>
-            </div>
           </div>
         </div>
       </div>
