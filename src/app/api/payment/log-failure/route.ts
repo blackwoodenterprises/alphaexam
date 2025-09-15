@@ -55,20 +55,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (pendingTransaction) {
-      console.log('🔄 [LOG-FAILURE] Updating existing transaction with failure reason');
+      console.log('🔄 [LOG-FAILURE] Updating existing transaction with failure reason and status');
       await prisma.transaction.update({
         where: { id: pendingTransaction.id },
         data: {
-          failureReason: error,
+          status: 'FAILED',
+          failureReason: error || 'Payment cancelled by user',
           lastAttemptAt: new Date(),
           metadata: {
             ...(pendingTransaction.metadata as TransactionMetadata || {}),
             failures: [
               ...((pendingTransaction.metadata as TransactionMetadata)?.failures || []),
               {
-                gateway,
-                error,
-                timestamp,
+                gateway: gateway || 'razorpay',
+                error: error || 'Payment cancelled by user',
+                timestamp: timestamp || new Date().toISOString(),
                 attemptNumber: pendingTransaction.attemptCount
               }
             ]

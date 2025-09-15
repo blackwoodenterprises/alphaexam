@@ -52,6 +52,7 @@ interface RazorpayOptions {
     backdropclose?: boolean;
     escape?: boolean;
     handleback?: boolean;
+    ondismiss?: () => void;
   };
 }
 
@@ -285,6 +286,30 @@ function PaymentContent() {
           backdropclose: false,
           escape: true,
           handleback: true,
+          ondismiss: () => {
+            console.log('🚫 Payment modal dismissed/cancelled by user');
+            setProcessing(false);
+            
+            // Log the cancellation and mark transaction as failed
+            if (orderData?.id && paymentDetails) {
+              fetch('/api/payment/log-failure', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  gateway: 'razorpay',
+                  amount: paymentDetails.amount,
+                  currency: paymentDetails.currency,
+                  credits: paymentDetails.credits,
+                  error: 'Payment cancelled by user',
+                  timestamp: new Date().toISOString()
+                }),
+              }).catch(error => {
+                console.error('❌ Failed to log payment cancellation:', error);
+              });
+            }
+          },
         },
       };
 
