@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
           paymentGateway: 'RAZORPAY',
           status: 'PENDING',
           razorpayOrderId: razorpayOrder.id,
-          description: `Purchase of ${credits} credits`,
+          description: `Paid ₹${amount} via Razorpay`,
           attemptCount: 1,
           lastAttemptAt: new Date()
         },

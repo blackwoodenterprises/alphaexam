@@ -45,9 +45,10 @@ interface Transaction {
   amount: number;
   credits: number;
   status: string;
-  description: string | null;
-  createdAt: Date;
-  razorpayPaymentId: string | null;
+  createdAt: string;
+  currency?: string;
+  paymentGateway?: string;
+  description?: string;
 }
 
 interface UserData {
@@ -515,12 +516,23 @@ export default function UserDashboard() {
                               : "text-red-600"
                           }`}
                         >
-                          {transaction.amount >= 0 ? "+" : ""}₹
+                          {transaction.amount >= 0 ? "+" : ""}
+                          {transaction.currency === 'USD' || transaction.paymentGateway === 'PAYPAL' ? '$' : '₹'}
                           {Math.abs(transaction.amount)}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {transaction.credits >= 0 ? "+" : ""}
-                          {transaction.credits} credits
+                        <div className={`text-sm font-medium ${
+                          transaction.type === 'EXAM_PAYMENT'
+                            ? "text-red-600"
+                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}>
+                          {transaction.type === 'EXAM_PAYMENT'
+                            ? `-${Math.abs(transaction.credits)} credits`
+                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                            ? `+${Math.abs(transaction.credits)} credits`
+                            : `${transaction.credits >= 0 ? "+" : ""}${transaction.credits} credits`
+                          }
                         </div>
                         <span
                           className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${

@@ -35,7 +35,10 @@ export async function GET() {
         status: true,
         description: true,
         createdAt: true,
+        currency: true,
+        paymentGateway: true,
         razorpayPaymentId: true,
+        paypalPaymentId: true,
       },
     });
 

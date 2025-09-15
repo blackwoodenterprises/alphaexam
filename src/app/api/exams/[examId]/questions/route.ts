@@ -176,7 +176,7 @@ export async function GET(
             amount: exam.price,
             credits: exam.price,
             status: "COMPLETED",
-            description: `Credits deducted for exam: ${exam.title}`,
+            description: `Exam taken: ${exam.title}`,
           },
         });
       }

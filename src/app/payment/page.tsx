@@ -422,8 +422,73 @@ function PaymentContent() {
   };
 
   const handlePaypalPayment = async () => {
-    console.log("💳 Initializing PayPal payment...");
-    alert("PayPal integration coming soon!");
+    if (!paymentDetails || paymentDetails.currency !== "USD") {
+      alert("PayPal is only available for USD payments");
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      console.log("💳 Starting PayPal payment process...");
+      console.log("💰 Payment details:", paymentDetails);
+
+      // Create PayPal order
+      const orderResponse = await fetch("/api/payment/paypal/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: paymentDetails.amount,
+          currency: paymentDetails.currency,
+          credits: paymentDetails.credits,
+        }),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create PayPal order");
+      }
+
+      const orderData = await orderResponse.json();
+      console.log("📋 PayPal order created:", orderData);
+
+      // Redirect to PayPal for payment approval
+      if (orderData.approvalUrl) {
+        console.log("🔗 Redirecting to PayPal approval URL:", orderData.approvalUrl);
+        window.location.href = orderData.approvalUrl;
+      } else {
+        throw new Error("No approval URL received from PayPal");
+      }
+    } catch (error) {
+      console.error("❌ Error in PayPal payment:", error);
+      setProcessing(false);
+
+      if (error instanceof Error) {
+        alert(`PayPal payment initialization failed: ${error.message}`);
+      } else {
+        alert("PayPal payment initialization failed. Please try again.");
+      }
+
+      // Log the failure
+      if (paymentDetails) {
+        fetch("/api/payment/log-failure", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            gateway: "paypal",
+            amount: paymentDetails.amount,
+            currency: paymentDetails.currency,
+            credits: paymentDetails.credits,
+            error: error instanceof Error ? error.message : "Unknown error",
+            timestamp: new Date().toISOString(),
+          }),
+        }).catch((logError) => {
+          console.error("❌ Failed to log PayPal payment failure:", logError);
+        });
+      }
+    }
   };
 
   if (!isLoaded || loading) {
@@ -606,38 +671,81 @@ function PaymentContent() {
 
                 {/* PayPal */}
                 <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedGateway === "paypal"
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
+                  className={`p-4 border rounded-lg transition-all duration-200 ${
+                    paymentDetails.currency === "INR"
+                      ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
+                      : selectedGateway === "paypal"
+                      ? "border-purple-500 bg-purple-50 cursor-pointer"
+                      : "border-gray-200 hover:border-gray-300 cursor-pointer"
                   }`}
-                  onClick={() => setSelectedGateway("paypal")}
+                  onClick={() => {
+                    if (paymentDetails.currency !== "INR") {
+                      setSelectedGateway("paypal");
+                    }
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <CreditCard className="w-6 h-6 text-yellow-600" />
+                      <div
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          paymentDetails.currency === "INR"
+                            ? "bg-gray-100"
+                            : "bg-yellow-100"
+                        }`}
+                      >
+                        <CreditCard
+                          className={`w-6 h-6 ${
+                            paymentDetails.currency === "INR"
+                              ? "text-gray-400"
+                              : "text-yellow-600"
+                          }`}
+                        />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">PayPal</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3
+                          className={`font-semibold ${
+                            paymentDetails.currency === "INR"
+                              ? "text-gray-400"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          PayPal
+                        </h3>
+                        <p
+                          className={`text-sm ${
+                            paymentDetails.currency === "INR"
+                              ? "text-gray-400"
+                              : "text-gray-600"
+                          }`}
+                        >
                           PayPal Balance, Credit/Debit Cards
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Recommended for international students
+                        <p
+                          className={`text-xs ${
+                            paymentDetails.currency === "INR"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {paymentDetails.currency === "INR"
+                            ? "Not available for INR payments"
+                            : "Recommended for international students"}
                         </p>
                       </div>
                     </div>
                     <div
                       className={`w-4 h-4 rounded-full border-2 ${
-                        selectedGateway === "paypal"
+                        paymentDetails.currency === "INR"
+                          ? "border-gray-300 bg-gray-100"
+                          : selectedGateway === "paypal"
                           ? "border-purple-500 bg-purple-500"
                           : "border-gray-300"
                       }`}
                     >
-                      {selectedGateway === "paypal" && (
-                        <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                      )}
+                      {selectedGateway === "paypal" &&
+                        paymentDetails.currency !== "INR" && (
+                          <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                        )}
                     </div>
                   </div>
                 </div>

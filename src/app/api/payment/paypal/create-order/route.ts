@@ -119,10 +119,11 @@ export async function POST(request: NextRequest) {
         type: 'CREDIT_PURCHASE',
         amount: amount,
         credits: credits,
+        currency: 'USD',
         paymentGateway: 'PAYPAL',
         status: 'PENDING',
         paypalOrderId: paypalOrder.id,
-        description: `Purchase of ${credits} credits`,
+        description: `Paid $${amount} via PayPal`,
       },
     });
 

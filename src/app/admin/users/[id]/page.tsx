@@ -114,7 +114,8 @@ async function getStudentData(userId: string) {
 }
 
 export default async function StudentDetailPage({ params }: StudentDetailPageProps) {
-  const data = await getStudentData(params.id);
+  const { id } = await params;
+  const data = await getStudentData(id);
 
   if (!data) {
     notFound();
@@ -403,13 +404,27 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-semibold ${
-                      transaction.type === 'ADMIN_CREDIT'
+                      transaction.type === 'ADMIN_CREDIT' || transaction.type === 'CREDIT_PURCHASE'
                         ? 'text-green-600'
                         : 'text-red-600'
                     }`}>
-                      {transaction.type === 'ADMIN_CREDIT' 
-                        ? `+₹${Math.abs(transaction.amount).toLocaleString()}`
-                        : `-₹${Math.abs(transaction.amount).toLocaleString()}`
+                      {transaction.type === 'ADMIN_CREDIT' || transaction.type === 'CREDIT_PURCHASE'
+                        ? `+${(transaction.currency === 'USD' || transaction.paymentGateway === 'PAYPAL') ? '$' : '₹'}${Math.abs(transaction.amount).toLocaleString()}`
+                        : `-${(transaction.currency === 'USD' || transaction.paymentGateway === 'PAYPAL') ? '$' : '₹'}${Math.abs(transaction.amount).toLocaleString()}`
+                      }
+                    </p>
+                    <p className={`text-sm font-medium ${
+                      transaction.type === 'EXAM_PAYMENT'
+                        ? "text-red-600"
+                        : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                        ? "text-green-600"
+                        : "text-blue-600"
+                    }`}>
+                      {transaction.type === 'EXAM_PAYMENT'
+                        ? `-${Math.abs(transaction.credits)} credits`
+                        : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                        ? `+${Math.abs(transaction.credits)} credits`
+                        : `${transaction.credits >= 0 ? '+' : ''}${transaction.credits} credits`
                       }
                     </p>
                   </div>

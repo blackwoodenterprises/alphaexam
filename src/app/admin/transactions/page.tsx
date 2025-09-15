@@ -281,11 +281,12 @@ export default async function TransactionsPage() {
     });
   };
 
-  const formatAmount = (amount: number, transactionType: string) => {
-    if (transactionType === 'ADMIN_CREDIT') {
-      return `+₹${Math.abs(amount)}`;
+  const formatAmount = (amount: number, transactionType: string, currency?: string, paymentGateway?: string) => {
+    const currencySymbol = (currency === 'USD' || paymentGateway === 'PAYPAL') ? '$' : '₹';
+    if (transactionType === 'ADMIN_CREDIT' || transactionType === 'CREDIT_PURCHASE') {
+      return `+${currencySymbol}${Math.abs(amount)}`;
     }
-    return `-₹${Math.abs(amount)}`;
+    return `-${currencySymbol}${Math.abs(amount)}`;
   };
 
   return (
@@ -375,89 +376,73 @@ export default async function TransactionsPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Transaction
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        User
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Type
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Amount
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Status
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Date
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.transactions.map((transaction) => (
-                      <tr
-                        key={transaction.id}
-                        className="border-b border-gray-100 hover:bg-gray-50"
-                      >
-                        <td className="py-4 px-4">
-                          <div>
+              <div className="space-y-4">
+                {data.transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                          {transaction.user.firstName?.charAt(0) ||
+                            transaction.user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
                             <p className="font-medium text-gray-900">
-                              {transaction.razorpayPaymentId || transaction.id}
+                              {transaction.user.firstName
+                                ? `${transaction.user.firstName} ${transaction.user.lastName}`
+                                : transaction.user.email}
                             </p>
-                            {transaction.description && (
-                              <p className="text-sm text-gray-600 truncate max-w-xs">
-                                {transaction.description}
-                              </p>
-                            )}
+                            <Badge
+                              variant="outline"
+                              className={getTypeColor(transaction.type)}
+                            >
+                              {transaction.type.replace("_", " ")}
+                            </Badge>
                           </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                              {transaction.user.firstName?.charAt(0) ||
-                                transaction.user.email.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {transaction.user.firstName
-                                  ? `${transaction.user.firstName} ${transaction.user.lastName}`
-                                  : transaction.user.email}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {transaction.user.email}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Badge
-                            variant="outline"
-                            className={getTypeColor(transaction.type)}
-                          >
-                            {transaction.type.replace("_", " ")}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span
-                            className={`font-semibold ${
-                              transaction.type === 'ADMIN_CREDIT'
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {formatAmount(transaction.amount, transaction.type)}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
+                          <p className="text-sm text-gray-600 mb-1">
+                            {transaction.user.email}
+                          </p>
+                          <p className="text-sm text-gray-500 mb-2">
+                            ID: {transaction.razorpayPaymentId || transaction.id}
+                          </p>
+                          {transaction.description && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {transaction.description}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400">
+                            {formatDate(transaction.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className={`font-semibold mb-1 ${
+                            transaction.type === 'ADMIN_CREDIT' || transaction.type === 'CREDIT_PURCHASE'
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {formatAmount(transaction.amount, transaction.type, transaction.currency, transaction.paymentGateway)}
+                        </div>
+                        <div className={`text-sm font-medium mb-2 ${
+                          transaction.type === 'EXAM_PAYMENT'
+                            ? "text-red-600"
+                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                            ? "text-green-600"
+                            : "text-blue-600"
+                        }`}>
+                          {transaction.type === 'EXAM_PAYMENT'
+                            ? `-${Math.abs(transaction.credits)} credits`
+                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                            ? `+${Math.abs(transaction.credits)} credits`
+                            : `${transaction.credits >= 0 ? '+' : ''}${transaction.credits} credits`
+                          }
+                        </div>
+                        <div className="flex items-center justify-end space-x-2">
                           <Badge
                             variant="outline"
                             className={`${getStatusColor(
@@ -467,14 +452,7 @@ export default async function TransactionsPage() {
                             {getStatusIcon(transaction.status)}
                             <span>{transaction.status}</span>
                           </Badge>
-                        </td>
-                        <td className="py-4 px-4">
-                          <p className="text-sm text-gray-600">
-                            {formatDate(transaction.createdAt)}
-                          </p>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-1">
                             <Button variant="ghost" size="sm">
                               <Receipt className="w-4 h-4" />
                             </Button>
@@ -488,11 +466,11 @@ export default async function TransactionsPage() {
                               </Button>
                             )}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
