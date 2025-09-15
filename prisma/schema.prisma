@@ -182,6 +182,11 @@ model Transaction {
   paypalOrderId     String?
   paypalPaymentId   String?
   description       String?
+  failureReason     String?           // Track why payment failed
+  attemptCount      Int               @default(1) // Track retry attempts
+  lastAttemptAt     DateTime?         // Track when last attempt was made
+  completedAt       DateTime?         // Track when payment was completed
+  metadata          Json?             // Store additional payment metadata
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   user              User              @relation(fields: [userId], references: [id])

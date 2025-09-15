@@ -164,6 +164,26 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
+/* Razorpay modal backdrop override */
+.razorpay-container {
+  background-color: rgba(128, 128, 128, 0.3) !important;
+}
+
+.razorpay-backdrop {
+  background-color: rgba(128, 128, 128, 0.3) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+/* Override Razorpay's default dark backdrop */
+#razorpay-container {
+  background-color: rgba(128, 128, 128, 0.3) !important;
+}
+
+#razorpay-container .razorpay-backdrop {
+  background-color: rgba(128, 128, 128, 0.3) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
 /* Button animations */
 .btn-animate {
   transition: all 0.2s ease-in-out;

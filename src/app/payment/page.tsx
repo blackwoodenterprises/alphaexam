@@ -40,13 +40,18 @@ interface RazorpayOptions {
   name: string;
   description: string;
   order_id: string;
-  handler: (response: RazorpayResponse) => void;
+  handler: (response: RazorpayResponse) => void | Promise<void>;
   prefill: {
     name: string;
     email: string;
   };
   theme: {
     color: string;
+  };
+  modal?: {
+    backdropclose?: boolean;
+    escape?: boolean;
+    handleback?: boolean;
   };
 }
 
@@ -56,29 +61,30 @@ interface RazorpayInstance {
 
 declare global {
   interface Window {
-    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
 
 function PaymentContent() {
   const { isLoaded, userId } = useAuth();
-  const { user: clerkUser } = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
-  const [selectedGateway, setSelectedGateway] = useState<'razorpay' | 'paypal' | null>(null);
-  const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationCountdown, setVerificationCountdown] = useState(10);
+  const [selectedGateway, setSelectedGateway] = useState<'razorpay' | 'paypal'>('razorpay');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoaded) return;
-
+    
     if (!userId) {
-      router.push("/sign-in");
+      router.push('/sign-in');
       return;
     }
 
-    // Get payment details from URL params
     const credits = searchParams.get('credits');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency') as 'INR' | 'USD';
@@ -91,70 +97,86 @@ function PaymentContent() {
     setPaymentDetails({
       credits: parseInt(credits),
       amount: parseFloat(amount),
-      currency: currency,
+      currency,
     });
-
+    
     setLoading(false);
   }, [isLoaded, userId, router, searchParams]);
 
   const handlePayment = async () => {
-    if (!paymentDetails || !selectedGateway) return;
-
-    setProcessing(true);
-
-    try {
-      if (selectedGateway === 'razorpay') {
-        await handleRazorpayPayment();
-      } else if (selectedGateway === 'paypal') {
-        await handlePaypalPayment();
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('Payment failed. Please try again.');
-    } finally {
-      setProcessing(false);
+    if (!paymentDetails) return;
+    
+    if (selectedGateway === 'razorpay') {
+      await handleRazorpayPayment();
+    } else {
+      await handlePaypalPayment();
     }
   };
 
   const handleRazorpayPayment = async () => {
-    if (!paymentDetails) return;
-
-    // Create order
-    const orderResponse = await fetch('/api/payment/razorpay/create-order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: paymentDetails.amount,
-        currency: paymentDetails.currency,
-        credits: paymentDetails.credits,
-      }),
-    });
-
-    const orderData = await orderResponse.json();
-
-    if (!orderResponse.ok) {
-      throw new Error(orderData.error || 'Failed to create order');
+    if (!paymentDetails || paymentDetails.currency !== 'INR') {
+      alert('Razorpay is only available for INR payments');
+      return;
     }
 
-    // Load Razorpay script
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
+    try {
+      setProcessing(true);
+      console.log('🚀 Starting Razorpay payment process...');
+      console.log('💰 Payment details:', paymentDetails);
 
-    script.onload = () => {
+      // Create order
+      const orderResponse = await fetch('/api/payment/razorpay/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: paymentDetails.amount,
+          currency: paymentDetails.currency,
+          credits: paymentDetails.credits,
+        }),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const orderData = await orderResponse.json();
+      console.log('📋 Order created:', orderData);
+
+      // Load Razorpay SDK if not already loaded
       if (!window.Razorpay) {
+        console.log('📦 Loading Razorpay SDK...');
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
+
+      if (!window.Razorpay) {
+        console.error('❌ Razorpay SDK not available on window object');
         alert('Razorpay SDK failed to load');
         return;
       }
+      console.log('✅ Razorpay SDK available');
 
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
+      // Get Razorpay key from server-side API
+      const keyResponse = await fetch('/api/payment/razorpay/get-key');
+      const keyData = await keyResponse.json();
+      
+      if (!keyData.key) {
+        console.error('❌ Failed to get Razorpay key from server');
         alert('Razorpay configuration error');
         return;
       }
+      
+      const razorpayKey = keyData.key;
+      console.log('🔑 Razorpay key received from server:', razorpayKey ? `${razorpayKey.substring(0, 8)}...` : 'NOT FOUND');
 
       const options: RazorpayOptions = {
         key: razorpayKey,
@@ -164,71 +186,129 @@ function PaymentContent() {
         description: `${paymentDetails.credits} Credits`,
         order_id: orderData.id as string,
         handler: async (response: RazorpayResponse) => {
-          // Verify payment
-          const verifyResponse = await fetch('/api/payment/razorpay/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          });
-
-          if (verifyResponse.ok) {
-            router.push('/dashboard?payment=success');
-          } else {
-            alert('Payment verification failed');
-          }
+          console.log('💰 Payment successful, response:', response);
+          console.log('🔍 Starting payment verification process...');
+          
+          setProcessing(false);
+          setVerifying(true);
+          setVerificationCountdown(10);
+          
+          // Start countdown
+          const countdownInterval = setInterval(() => {
+            setVerificationCountdown(prev => {
+              if (prev <= 1) {
+                clearInterval(countdownInterval);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          
+          // Wait for webhook processing (10 seconds)
+          setTimeout(() => {
+            console.log('⏰ Webhook processing time completed, attempting verification...');
+            
+            // Verify payment
+            fetch('/api/payment/razorpay/verify', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
+            .then(verifyResponse => {
+              console.log('📡 Verification response status:', verifyResponse.status);
+              return verifyResponse.json().then(verifyData => ({ verifyResponse, verifyData }));
+            })
+            .then(({ verifyResponse, verifyData }) => {
+              console.log('✅ Verification data:', verifyData);
+              
+              setVerifying(false);
+              clearInterval(countdownInterval);
+              
+              if (verifyResponse.ok) {
+                console.log('🎉 Payment verified successfully, redirecting to dashboard');
+                router.push('/dashboard?payment=success');
+              } else {
+                console.error('❌ Payment verification failed:', verifyData);
+                // Try one more time after additional delay
+                console.log('🔄 Retrying verification in 5 seconds...');
+                
+                setTimeout(() => {
+                  fetch('/api/payment/razorpay/verify', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                    }),
+                  })
+                  .then(retryResponse => {
+                    if (retryResponse.ok) {
+                      console.log('🎉 Payment verified on retry, redirecting to dashboard');
+                      router.push('/dashboard?payment=success');
+                    } else {
+                      console.error('❌ Payment verification failed after retry');
+                      alert('Payment verification failed. Please contact support if the amount was deducted.');
+                    }
+                  })
+                  .catch(error => {
+                    console.error('❌ Payment verification retry error:', error);
+                    alert('Payment verification failed. Please contact support if the amount was deducted.');
+                  });
+                }, 5000);
+              }
+            })
+            .catch(error => {
+              console.error('❌ Payment verification error:', error);
+              setVerifying(false);
+              clearInterval(countdownInterval);
+              alert('Payment verification failed. Please contact support if the amount was deducted.');
+            });
+          }, 10000);
         },
         prefill: {
-          name: `${clerkUser?.firstName || ''} ${clerkUser?.lastName || ''}`.trim() || 'User',
-          email: clerkUser?.emailAddresses[0]?.emailAddress || '',
+          name: user?.fullName || '',
+          email: user?.primaryEmailAddress?.emailAddress || '',
         },
         theme: {
           color: '#7c3aed',
         },
+        modal: {
+          backdropclose: false,
+          escape: true,
+          handleback: true,
+        },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    };
+      console.log('🚀 Opening Razorpay payment modal');
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('❌ Error in Razorpay payment:', error);
+      setProcessing(false);
+      alert('Payment initialization failed');
+    }
   };
 
   const handlePaypalPayment = async () => {
-    if (!paymentDetails) return;
-
-    // Create PayPal order
-    const orderResponse = await fetch('/api/payment/paypal/create-order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: paymentDetails.amount,
-        currency: paymentDetails.currency,
-        credits: paymentDetails.credits,
-      }),
-    });
-
-    const orderData = await orderResponse.json();
-
-    if (!orderResponse.ok) {
-      throw new Error(orderData.error || 'Failed to create PayPal order');
-    }
-
-    // Redirect to PayPal
-    window.location.href = orderData.approvalUrl;
+    console.log('💳 Initializing PayPal payment...');
+    alert('PayPal integration coming soon!');
   };
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading payment page...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600">Loading payment details...</p>
         </div>
       </div>
     );
@@ -236,12 +316,9 @@ function PaymentContent() {
 
   if (!paymentDetails) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Invalid payment details</p>
-          <Button onClick={() => router.push('/buy-credits')} className="mt-4">
-            Go back to credit selection
-          </Button>
         </div>
       </div>
     );
@@ -250,10 +327,8 @@ function PaymentContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <Header />
-
       <main className="py-8">
         <div className="container-restricted px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
-          {/* Header Section */}
           <div className="mb-8">
             <Button
               variant="ghost"
@@ -263,7 +338,7 @@ function PaymentContent() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Credit Selection
             </Button>
-            
+
             <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Complete Payment
@@ -309,7 +384,7 @@ function PaymentContent() {
             </CardContent>
           </Card>
 
-          {/* Payment Method Selection */}
+          {/* Payment Methods */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Select Payment Method</CardTitle>
@@ -319,43 +394,64 @@ function PaymentContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Razorpay Option */}
+                {/* Razorpay */}
                 <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedGateway === 'razorpay'
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                  className={`p-4 border rounded-lg transition-all duration-200 ${
+                    paymentDetails.currency === 'USD'
+                      ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                      : selectedGateway === 'razorpay'
+                      ? 'border-purple-500 bg-purple-50 cursor-pointer'
+                      : 'border-gray-200 hover:border-gray-300 cursor-pointer'
                   }`}
-                  onClick={() => setSelectedGateway('razorpay')}
+                  onClick={() => {
+                    if (paymentDetails.currency !== 'USD') {
+                      setSelectedGateway('razorpay');
+                    }
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <CreditCard className="w-6 h-6 text-blue-600" />
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        paymentDetails.currency === 'USD' ? 'bg-gray-100' : 'bg-blue-100'
+                      }`}>
+                        <CreditCard className={`w-6 h-6 ${
+                          paymentDetails.currency === 'USD' ? 'text-gray-400' : 'text-blue-600'
+                        }`} />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Razorpay</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className={`font-semibold ${
+                          paymentDetails.currency === 'USD' ? 'text-gray-400' : 'text-gray-900'
+                        }`}>Razorpay</h3>
+                        <p className={`text-sm ${
+                          paymentDetails.currency === 'USD' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           Credit/Debit Cards, UPI, Net Banking, Wallets
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Recommended for Indian students
+                        <p className={`text-xs ${
+                          paymentDetails.currency === 'USD' ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          {paymentDetails.currency === 'USD' 
+                            ? 'Not available for USD payments' 
+                            : 'Recommended for Indian students'
+                          }
                         </p>
                       </div>
                     </div>
                     <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedGateway === 'razorpay'
+                      paymentDetails.currency === 'USD'
+                        ? 'border-gray-300 bg-gray-100'
+                        : selectedGateway === 'razorpay'
                         ? 'border-purple-500 bg-purple-500'
                         : 'border-gray-300'
                     }`}>
-                      {selectedGateway === 'razorpay' && (
+                      {selectedGateway === 'razorpay' && paymentDetails.currency !== 'USD' && (
                         <div className="w-full h-full rounded-full bg-white scale-50"></div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* PayPal Option */}
+                {/* PayPal */}
                 <div
                   className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
                     selectedGateway === 'paypal'
@@ -406,7 +502,7 @@ function PaymentContent() {
             </CardContent>
           </Card>
 
-          {/* Pay Button */}
+          {/* Payment Button */}
           <Card>
             <CardContent className="pt-6">
               <Button
@@ -424,7 +520,7 @@ function PaymentContent() {
                   `Pay ${paymentDetails.currency === 'INR' ? '₹' : '$'}${paymentDetails.amount}`
                 )}
               </Button>
-              
+
               {!selectedGateway && (
                 <p className="text-center text-sm text-gray-500 mt-2">
                   Please select a payment method to continue
@@ -434,8 +530,45 @@ function PaymentContent() {
           </Card>
         </div>
       </main>
-
       <Footer />
+
+      {/* Processing Modal */}
+      {processing && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold mb-2">Processing Payment</h3>
+            <p className="text-gray-600">Please wait while we process your payment...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Verification Modal */}
+      {verifying && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+            <div className="animate-pulse rounded-full h-16 w-16 bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2 text-green-600">Payment Successful!</h3>
+            <p className="text-gray-600 mb-4">Verifying your payment...</p>
+            {verificationCountdown > 0 && (
+              <div className="mb-4">
+                <div className="text-2xl font-bold text-blue-600 mb-2">{verificationCountdown}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-1000" 
+                    style={{ width: `${((10 - verificationCountdown) / 10) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-gray-500">Please don&apos;t close this window</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -444,9 +577,9 @@ export default function Payment() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading payment page...</span>
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     }>

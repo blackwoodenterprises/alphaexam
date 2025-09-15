@@ -442,7 +442,7 @@ export default function UserDashboard() {
                   <span>Recent Transactions</span>
                 </div>
                 <Button
-                  onClick={() => router.push("/credits")}
+                  onClick={() => router.push("/buy-credits")}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   size="sm"
                 >
@@ -548,7 +548,7 @@ export default function UserDashboard() {
                     transactions here
                   </p>
                   <Button
-                    onClick={() => router.push("/credits")}
+                    onClick={() => router.push("/buy-credits")}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
