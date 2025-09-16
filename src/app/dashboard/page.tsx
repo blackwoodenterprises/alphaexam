@@ -2,6 +2,7 @@
 
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -426,9 +427,11 @@ export default function UserDashboard() {
                   <p className="text-gray-600 mb-6">
                     Start your preparation journey with your first mock test
                   </p>
-                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                    Browse Exams
-                  </Button>
+                  <Link href="/exams">
+                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                      Browse Exams
+                    </Button>
+                  </Link>
                 </div>
               )}
             </CardContent>

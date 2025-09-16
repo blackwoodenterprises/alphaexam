@@ -131,7 +131,7 @@ export default function RefundPage() {
     {
       icon: Mail,
       title: "Email Support",
-      value: "refunds@alphaexam.com",
+      value: "support@alphaexam.in",
       description: "Best for detailed refund requests",
       response: "Within 24 hours",
     },
@@ -145,7 +145,7 @@ export default function RefundPage() {
     {
       icon: Phone,
       title: "Phone Support",
-      value: "+1 (555) 123-4567",
+      value: "8851134099",
       description: "Urgent refund matters",
       response: "Business hours only",
     },

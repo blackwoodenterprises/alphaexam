@@ -91,7 +91,7 @@ export default function AboutPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="py-20">
+        <section className="py-12">
           <div className="container-restricted px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -110,7 +110,7 @@ export default function AboutPage() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container-restricted px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {stats.map((stat, index) => (
@@ -132,7 +132,7 @@ export default function AboutPage() {
         </section>
 
         {/* Mission Section */}
-        <section className="py-20">
+        <section className="py-12">
           <div className="container-restricted px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>

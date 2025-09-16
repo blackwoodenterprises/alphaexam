@@ -32,23 +32,23 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: "Email Us",
-      primary: "support@alphaexam.com",
-      secondary: "hello@alphaexam.com",
+      primary: "support@alphaexam.in",
+      secondary: "support@alphaexam.in",
       description: "Get in touch for any queries or support",
     },
     {
       icon: Phone,
       title: "Call Us",
-      primary: "+91 98765 43210",
-      secondary: "+91 98765 43211",
+      primary: "8851134099",
+      secondary: "8851134099",
       description: "Monday to Friday, 9 AM to 6 PM IST",
     },
     {
       icon: MapPin,
       title: "Visit Us",
-      primary: "AlphaExam Technologies",
-      secondary: "Bangalore, Karnataka 560001, India",
-      description: "Our headquarters in the Silicon Valley of India",
+      primary: "D-52, Supremework Co-Working Space",
+      secondary: "Chhattarpur, New Delhi - 110047",
+      description: "Our headquarters in the heart of Delhi",
     },
     {
       icon: Clock,
@@ -138,7 +138,7 @@ export default function ContactPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="py-20">
+        <section className="py-12">
           <div className="container-restricted px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -157,7 +157,7 @@ export default function ContactPage() {
         </section>
 
         {/* Contact Info Cards */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container-restricted px-4 sm:px-6 lg:px-8">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
               {contactInfo.map((info, index) => (

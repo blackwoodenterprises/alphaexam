@@ -110,8 +110,12 @@ export function DatePicker({
   const handleDateSelect = (day: number) => {
     if (isDateDisabled(day, currentMonth, currentYear)) return;
     
-    const date = new Date(currentYear, currentMonth, day);
-    const dateString = date.toISOString().split('T')[0];
+    // Create date string in YYYY-MM-DD format without timezone conversion
+    const year = currentYear.toString();
+    const month = (currentMonth + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const dateString = `${year}-${month}-${dayStr}`;
+    
     onChange(dateString);
     setIsOpen(false);
   };

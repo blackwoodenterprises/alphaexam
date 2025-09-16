@@ -569,10 +569,10 @@ export default function CookiePage() {
                         If you have any questions about our use of cookies or
                         this Cookie Policy, please contact us at{" "}
                         <a
-                          href="mailto:privacy@alphaexam.com"
+                          href="mailto:support@alphaexam.in"
                           className="text-purple-600 hover:text-purple-700 font-medium"
                         >
-                          privacy@alphaexam.com
+                          support@alphaexam.in
                         </a>{" "}
                         or visit our{" "}
                         <a

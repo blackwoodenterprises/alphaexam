@@ -188,7 +188,7 @@ export default function FAQPage() {
       category: "general",
       question: "How do I contact customer support?",
       answer:
-        "You can reach our support team through multiple channels: email us at support@alphaexam.in, use the live chat feature on our website, or call us at +91 98765 43210 during business hours (9 AM - 6 PM IST).",
+        "You can reach our support team through multiple channels: email us at support@alphaexam.in, use the live chat feature on our website, or call us at 8851134099 during business hours (9 AM - 6 PM IST).",
     },
     {
       id: "23",

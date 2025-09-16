@@ -78,11 +78,11 @@ export function Footer() {
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">+91 98765 43210</span>
+                <span className="text-sm">8851134099</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <MapPin className="w-4 h-4" />
-                <span className="text-sm">Mumbai, India</span>
+                <span className="text-sm">D-52, Supremework Co-Working Space, Chhattarpur, New Delhi - 110047</span>
               </div>
             </div>
 
