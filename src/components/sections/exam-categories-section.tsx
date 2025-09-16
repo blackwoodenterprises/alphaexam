@@ -157,10 +157,10 @@ export function ExamCategoriesSection() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
-                        <Users className="w-4 h-4 text-purple-500" />
+                        <BookOpen className="w-4 h-4 text-purple-500" />
                       </div>
-                      <div className="text-lg font-bold text-gray-900">{category.totalAttempts}</div>
-                      <div className="text-xs text-gray-500">Total Attempts</div>
+                      <div className="text-lg font-bold text-gray-900">{category.examCount}</div>
+                      <div className="text-xs text-gray-500">Total Exams</div>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">

@@ -19,6 +19,9 @@ CREATE TYPE "public"."TransactionType" AS ENUM ('CREDIT_PURCHASE', 'EXAM_PAYMENT
 -- CreateEnum
 CREATE TYPE "public"."TransactionStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED');
 
+-- CreateEnum
+CREATE TYPE "public"."PaymentGateway" AS ENUM ('RAZORPAY', 'PAYPAL');
+
 -- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
@@ -170,10 +173,19 @@ CREATE TABLE "public"."transactions" (
     "type" "public"."TransactionType" NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "credits" DOUBLE PRECISION NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'INR',
+    "paymentGateway" "public"."PaymentGateway" NOT NULL DEFAULT 'RAZORPAY',
     "status" "public"."TransactionStatus" NOT NULL DEFAULT 'PENDING',
     "razorpayOrderId" TEXT,
     "razorpayPaymentId" TEXT,
+    "paypalOrderId" TEXT,
+    "paypalPaymentId" TEXT,
     "description" TEXT,
+    "failureReason" TEXT,
+    "attemptCount" INTEGER NOT NULL DEFAULT 1,
+    "lastAttemptAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
+    "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

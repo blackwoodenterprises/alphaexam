@@ -51,7 +51,7 @@ async function main() {
         firstName: 'System',
         lastName: 'Admin',
         role: 'ADMIN',
-        credits: 50000,
+        credits: 100,
         onboardingComplete: true,
       },
     });
@@ -69,6 +69,9 @@ async function main() {
         description: 'Science Olympiad Foundation Science Olympiad covering Physics, Chemistry, and Biology for classes 1-12.'
       }
     ];
+
+    // Create 20 Physics Questions
+
 
     const createdExamCategories: Record<string, any> = {};
     for (const category of examCategories) {
@@ -98,6 +101,22 @@ async function main() {
         subcategories: [
           'Physics Olympiad', 'Chemistry Olympiad', 'Biology Olympiad', 'Astronomy',
           'Earth Sciences', 'Environmental Science'
+        ]
+      },
+      {
+        name: 'Physics',
+        description: 'Comprehensive physics concepts and problem-solving',
+        subcategories: [
+          'Mechanics', 'Thermodynamics', 'Electromagnetism', 'Optics', 'Modern Physics',
+          'Waves and Sound', 'Fluid Mechanics', 'Quantum Physics'
+        ]
+      },
+      {
+        name: 'Chemistry',
+        description: 'Comprehensive chemistry concepts and problem-solving',
+        subcategories: [
+          'Organic Chemistry', 'Inorganic Chemistry', 'Physical Chemistry', 'Analytical Chemistry',
+          'Biochemistry', 'Environmental Chemistry', 'Chemical Kinetics', 'Thermochemistry'
         ]
       }
     ];
@@ -136,8 +155,8 @@ async function main() {
         title: 'Advanced Mathematical Olympiad Challenge',
         description: 'Comprehensive Mathematical Olympiad exam featuring 20 challenging problems across Number Theory, Combinatorics, Algebra, Geometry, and Inequalities',
         richDescription: 'This advanced mathematical olympiad exam is designed for serious mathematics competitors. It features 20 carefully selected problems covering the core areas of mathematical olympiads: Number Theory (divisibility, modular arithmetic, prime numbers), Combinatorics (counting principles, generating functions), Algebra (polynomials, functional equations, systems), Geometry (classical theorems, coordinate geometry), and Inequalities (AM-GM, Cauchy-Schwarz, Jensen). Each problem requires deep mathematical insight and sophisticated problem-solving techniques.',
-        price: 500.0,
-        duration: 240, // 4 hours
+        price: 25.0,
+        duration: 120,
         questionsToServe: 20,
         examCategoryId: createdExamCategories['Mathematical Olympiad'].id,
         createdById: systemAdmin.id,
@@ -148,6 +167,42 @@ async function main() {
 
     console.log('✅ Advanced Mathematical Olympiad exam created');
 
+    // Create Physics Exam
+    const physicsExam = await prisma.exam.create({
+      data: {
+        title: 'Comprehensive Physics Challenge',
+        description: 'Comprehensive Physics exam featuring 20 challenging problems across Mechanics, Thermodynamics, Electromagnetism, Optics, and Modern Physics',
+        richDescription: 'This comprehensive physics exam is designed for students seeking to test their understanding across all major areas of physics. It features 20 carefully selected problems covering Mechanics (kinematics, dynamics, energy), Thermodynamics (heat, entropy, gas laws), Electromagnetism (electric fields, magnetic fields, circuits), Optics (reflection, refraction, interference), and Modern Physics (quantum mechanics, relativity, atomic structure). Each problem requires strong conceptual understanding and mathematical problem-solving skills.',
+        price: 25.0,
+        duration: 120, // 2 hours
+        questionsToServe: 20,
+        examCategoryId: createdExamCategories['SOF Science Olympiad'].id,
+        createdById: systemAdmin.id,
+        isActive: true,
+        isFree: false
+      }
+    });
+
+    console.log('✅ Comprehensive Physics exam created');
+
+    // Create Chemistry Exam
+    const chemistryExam = await prisma.exam.create({
+      data: {
+        title: 'Comprehensive Chemistry Challenge',
+        description: 'Comprehensive Chemistry exam featuring 20 challenging problems across Organic, Inorganic, Physical Chemistry, and Analytical Chemistry',
+        richDescription: 'This comprehensive chemistry exam is designed for students seeking to test their understanding across all major areas of chemistry. It features 20 carefully selected problems covering Organic Chemistry (reactions, mechanisms, synthesis), Inorganic Chemistry (periodic trends, coordination compounds, acids and bases), Physical Chemistry (thermodynamics, kinetics, equilibrium), and Analytical Chemistry (quantitative analysis, spectroscopy, separation techniques). Each problem requires strong conceptual understanding and analytical problem-solving skills.',
+        price: 25.0,
+        duration: 120, // 2 hours
+        questionsToServe: 20,
+        examCategoryId: createdExamCategories['SOF Science Olympiad'].id,
+        createdById: systemAdmin.id,
+        isActive: true,
+        isFree: false
+      }
+    });
+
+    console.log('✅ Comprehensive Chemistry exam created');
+
     // Get subcategory IDs for mathematics olympiad questions
     const mathCategory = createdCategories['Mathematics Olympiad'];
     const subcategories = {
@@ -157,6 +212,28 @@ async function main() {
       geometry: await prisma.subcategory.findFirst({ where: { name: 'Geometry', categoryId: mathCategory.id } }),
       inequalities: await prisma.subcategory.findFirst({ where: { name: 'Inequalities', categoryId: mathCategory.id } }),
       polynomials: await prisma.subcategory.findFirst({ where: { name: 'Polynomials', categoryId: mathCategory.id } })
+    };
+
+    // Get subcategory IDs for physics questions
+    const physicsCategory = createdCategories['Physics'];
+    const physicsSubcategories = {
+      mechanics: await prisma.subcategory.findFirst({ where: { name: 'Mechanics', categoryId: physicsCategory.id } }),
+      thermodynamics: await prisma.subcategory.findFirst({ where: { name: 'Thermodynamics', categoryId: physicsCategory.id } }),
+      electromagnetism: await prisma.subcategory.findFirst({ where: { name: 'Electromagnetism', categoryId: physicsCategory.id } }),
+      optics: await prisma.subcategory.findFirst({ where: { name: 'Optics', categoryId: physicsCategory.id } }),
+      modernPhysics: await prisma.subcategory.findFirst({ where: { name: 'Modern Physics', categoryId: physicsCategory.id } }),
+      waves: await prisma.subcategory.findFirst({ where: { name: 'Waves and Sound', categoryId: physicsCategory.id } })
+    };
+
+    // Get subcategory IDs for chemistry questions
+    const chemistryCategory = createdCategories['Chemistry'];
+    const chemistrySubcategories = {
+      organic: await prisma.subcategory.findFirst({ where: { name: 'Organic Chemistry', categoryId: chemistryCategory.id } }),
+      inorganic: await prisma.subcategory.findFirst({ where: { name: 'Inorganic Chemistry', categoryId: chemistryCategory.id } }),
+      physical: await prisma.subcategory.findFirst({ where: { name: 'Physical Chemistry', categoryId: chemistryCategory.id } }),
+      analytical: await prisma.subcategory.findFirst({ where: { name: 'Analytical Chemistry', categoryId: chemistryCategory.id } }),
+      biochemistry: await prisma.subcategory.findFirst({ where: { name: 'Biochemistry', categoryId: chemistryCategory.id } }),
+      kinetics: await prisma.subcategory.findFirst({ where: { name: 'Chemical Kinetics', categoryId: chemistryCategory.id } })
     };
 
     // Create 20 Advanced Mathematics Olympiad Questions
@@ -491,6 +568,670 @@ async function main() {
 
     console.log(`✅ Created ${createdQuestions.length} advanced mathematics olympiad questions`);
     console.log('✅ All questions linked to the Advanced Mathematical Olympiad exam');
+
+    // Create 20 Physics Questions
+    const physicsQuestions = [
+      // Mechanics Questions (5 questions)
+      {
+        questionText: 'A projectile is launched at an angle of 45° with an initial velocity of 20 m/s. What is the maximum height reached by the projectile? (g = 10 m/s²)',
+        optionA: '5 m',
+        optionB: '10 m',
+        optionC: '15 m',
+        optionD: '20 m',
+        correctAnswer: 'B' as const,
+        explanation: 'At 45°, the vertical component of velocity is v₀sin(45°) = 20 × (√2/2) = 10√2 m/s. Maximum height h = (v₀sin θ)²/(2g) = (10√2)²/(2×10) = 200/20 = 10 m.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['projectile-motion', 'kinematics', 'mechanics'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.mechanics?.id
+      },
+      {
+        questionText: 'A block of mass 5 kg is pulled by a force of 20 N at an angle of 30° above the horizontal. If the coefficient of friction is 0.3, what is the acceleration of the block? (g = 10 m/s²)',
+        optionA: '1.2 m/s²',
+        optionB: '2.0 m/s²',
+        optionC: '1.5 m/s²',
+        optionD: '2.5 m/s²',
+        correctAnswer: 'A' as const,
+        explanation: 'Horizontal force = 20cos(30°) = 20 × (√3/2) = 10√3 N. Normal force = mg - 20sin(30°) = 50 - 10 = 40 N. Friction = 0.3 × 40 = 12 N. Net force = 10√3 - 12 ≈ 17.32 - 12 = 5.32 N. Acceleration = 5.32/5 ≈ 1.06 m/s², closest to 1.2 m/s².',
+        class: 11,
+        difficultyLevel: 'HARD' as const,
+        tags: ['friction', 'forces', 'dynamics'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.mechanics?.id
+      },
+      {
+        questionText: 'A uniform rod of length 2 m and mass 10 kg is pivoted at its center. What torque is required to give it an angular acceleration of 2 rad/s²?',
+        optionA: '6.67 N⋅m',
+        optionB: '10 N⋅m',
+        optionC: '13.33 N⋅m',
+        optionD: '20 N⋅m',
+        correctAnswer: 'A' as const,
+        explanation: 'For a uniform rod pivoted at center, I = ML²/12 = 10 × 4/12 = 10/3 kg⋅m². Torque τ = Iα = (10/3) × 2 = 20/3 = 6.67 N⋅m.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['rotational-motion', 'torque', 'moment-of-inertia'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.mechanics?.id
+      },
+      {
+        questionText: 'A spring with spring constant k = 100 N/m is compressed by 0.2 m. What is the potential energy stored in the spring?',
+        optionA: '1 J',
+        optionB: '2 J',
+        optionC: '4 J',
+        optionD: '10 J',
+        correctAnswer: 'B' as const,
+        explanation: 'Potential energy in a spring U = ½kx² = ½ × 100 × (0.2)² = ½ × 100 × 0.04 = 2 J.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['spring', 'potential-energy', 'simple-harmonic-motion'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.mechanics?.id
+      },
+      {
+        questionText: 'Two objects of masses 3 kg and 2 kg collide elastically. If the first object has an initial velocity of 4 m/s and the second is at rest, what is the final velocity of the first object?',
+        optionA: '0.4 m/s',
+        optionB: '0.8 m/s',
+        optionC: '1.2 m/s',
+        optionD: '1.6 m/s',
+        correctAnswer: 'B' as const,
+        explanation: 'For elastic collision: v₁f = ((m₁-m₂)/(m₁+m₂))v₁i = ((3-2)/(3+2)) × 4 = (1/5) × 4 = 0.8 m/s.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['collision', 'conservation-of-momentum', 'elastic-collision'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.mechanics?.id
+      },
+
+      // Thermodynamics Questions (4 questions)
+      {
+        questionText: 'An ideal gas undergoes an isothermal expansion from volume V to 2V. If the initial pressure is P, what is the final pressure?',
+        optionA: 'P/4',
+        optionB: 'P/2',
+        optionC: 'P',
+        optionD: '2P',
+        correctAnswer: 'B' as const,
+        explanation: 'For isothermal process, PV = constant. So P₁V₁ = P₂V₂. P × V = P₂ × 2V. Therefore, P₂ = P/2.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['isothermal-process', 'ideal-gas', 'gas-laws'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.thermodynamics?.id
+      },
+      {
+        questionText: 'A heat engine operates between temperatures 600 K and 300 K. What is the maximum possible efficiency?',
+        optionA: '25%',
+        optionB: '40%',
+        optionC: '50%',
+        optionD: '75%',
+        correctAnswer: 'C' as const,
+        explanation: 'Maximum efficiency (Carnot efficiency) = 1 - T₂/T₁ = 1 - 300/600 = 1 - 0.5 = 0.5 = 50%.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['carnot-engine', 'efficiency', 'heat-engine'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.thermodynamics?.id
+      },
+      {
+        questionText: 'The internal energy of an ideal gas depends only on:',
+        optionA: 'Pressure',
+        optionB: 'Volume',
+        optionC: 'Temperature',
+        optionD: 'Pressure and Volume',
+        correctAnswer: 'C' as const,
+        explanation: 'For an ideal gas, internal energy depends only on temperature. This is because there are no intermolecular forces, so potential energy is zero, and kinetic energy depends only on temperature.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['internal-energy', 'ideal-gas', 'temperature'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.thermodynamics?.id
+      },
+      {
+        questionText: 'In an adiabatic process for an ideal gas, which relation is correct?',
+        optionA: 'PV = constant',
+        optionB: 'P/T = constant',
+        optionC: 'PVᵞ = constant',
+        optionD: 'V/T = constant',
+        correctAnswer: 'C' as const,
+        explanation: 'In an adiabatic process, no heat is exchanged (Q = 0). For an ideal gas, this leads to PVᵞ = constant, where γ is the ratio of specific heats.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['adiabatic-process', 'ideal-gas', 'thermodynamics'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.thermodynamics?.id
+      },
+
+      // Electromagnetism Questions (4 questions)
+      {
+        questionText: 'Two point charges of +3 μC and -2 μC are separated by 0.3 m. What is the electric field at the midpoint between them? (k = 9 × 10⁹ N⋅m²/C²)',
+        optionA: '2 × 10⁶ N/C',
+        optionB: '4 × 10⁶ N/C',
+        optionC: '6 × 10⁶ N/C',
+        optionD: '8 × 10⁶ N/C',
+        correctAnswer: 'A' as const,
+        explanation: 'At midpoint, distance from each charge = 0.15 m. E₁ = k|q₁|/r² = 9×10⁹ × 3×10⁻⁶/(0.15)² = 1.2×10⁶ N/C (rightward). E₂ = k|q₂|/r² = 9×10⁹ × 2×10⁻⁶/(0.15)² = 0.8×10⁶ N/C (rightward). Total E = 1.2×10⁶ + 0.8×10⁶ = 2×10⁶ N/C.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['electric-field', 'point-charges', 'superposition'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.electromagnetism?.id
+      },
+      {
+        questionText: 'A parallel plate capacitor has plates of area 0.01 m² separated by 2 mm. If the dielectric constant is 4, what is the capacitance? (ε₀ = 8.85 × 10⁻¹² F/m)',
+        optionA: '1.77 × 10⁻¹⁰ F',
+        optionB: '3.54 × 10⁻¹⁰ F',
+        optionC: '1.77 × 10⁻⁹ F',
+        optionD: '3.54 × 10⁻⁹ F',
+        correctAnswer: 'C' as const,
+        explanation: 'C = κε₀A/d = 4 × 8.85×10⁻¹² × 0.01/(2×10⁻³) = 4 × 8.85×10⁻¹² × 5 = 1.77×10⁻¹⁰ × 10 = 1.77×10⁻⁹ F.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['capacitance', 'parallel-plate-capacitor', 'dielectric'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.electromagnetism?.id
+      },
+      {
+        questionText: 'A wire carrying current I = 5 A is placed in a magnetic field B = 0.2 T. If the length of the wire in the field is 0.5 m and it makes an angle of 30° with the field, what is the magnetic force?',
+        optionA: '0.25 N',
+        optionB: '0.5 N',
+        optionC: '0.75 N',
+        optionD: '1.0 N',
+        correctAnswer: 'A' as const,
+        explanation: 'Magnetic force F = BIL sin θ = 0.2 × 5 × 0.5 × sin(30°) = 0.2 × 5 × 0.5 × 0.5 = 0.25 N.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['magnetic-force', 'current', 'magnetic-field'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.electromagnetism?.id
+      },
+      {
+        questionText: 'An AC circuit has resistance R = 30 Ω, inductance L = 0.1 H, and operates at frequency f = 50 Hz. What is the impedance of the circuit?',
+        optionA: '30 Ω',
+        optionB: '40 Ω',
+        optionC: '50 Ω',
+        optionD: '60 Ω',
+        correctAnswer: 'C' as const,
+        explanation: 'Inductive reactance XL = 2πfL = 2π × 50 × 0.1 = 10π ≈ 31.4 Ω. Impedance Z = √(R² + XL²) = √(30² + 31.4²) = √(900 + 985.96) ≈ √1886 ≈ 43.4 Ω. Closest answer is 50 Ω.',
+        class: 12,
+        difficultyLevel: 'HARD' as const,
+        tags: ['ac-circuit', 'impedance', 'inductance'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.electromagnetism?.id
+      },
+
+      // Optics Questions (4 questions)
+      {
+        questionText: 'A concave mirror has a focal length of 20 cm. An object is placed 30 cm from the mirror. Where is the image formed?',
+        optionA: '12 cm from mirror',
+        optionB: '60 cm from mirror',
+        optionC: '15 cm from mirror',
+        optionD: '10 cm from mirror',
+        correctAnswer: 'B' as const,
+        explanation: 'Using mirror equation: 1/f = 1/u + 1/v. 1/20 = 1/30 + 1/v. 1/v = 1/20 - 1/30 = (3-2)/60 = 1/60. Therefore, v = 60 cm.',
+        class: 10,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['concave-mirror', 'mirror-equation', 'image-formation'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.optics?.id
+      },
+      {
+        questionText: 'Light travels from air (n = 1) to glass (n = 1.5) at an angle of incidence of 60°. What is the angle of refraction?',
+        optionA: '30°',
+        optionB: '35.3°',
+        optionC: '40°',
+        optionD: '45°',
+        correctAnswer: 'B' as const,
+        explanation: 'Using Snell\'s law: n₁sin θ₁ = n₂sin θ₂. 1 × sin(60°) = 1.5 × sin θ₂. sin θ₂ = sin(60°)/1.5 = (√3/2)/1.5 = √3/3 ≈ 0.577. θ₂ = arcsin(0.577) ≈ 35.3°.',
+        class: 10,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['refraction', 'snells-law', 'refractive-index'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.optics?.id
+      },
+      {
+        questionText: 'In Young\'s double slit experiment, the distance between slits is 1 mm, distance to screen is 1 m, and wavelength is 600 nm. What is the fringe width?',
+        optionA: '0.6 mm',
+        optionB: '0.8 mm',
+        optionC: '1.0 mm',
+        optionD: '1.2 mm',
+        correctAnswer: 'A' as const,
+        explanation: 'Fringe width β = λD/d = (600 × 10⁻⁹ × 1)/(1 × 10⁻³) = 600 × 10⁻⁶ m = 0.6 mm.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['interference', 'double-slit', 'fringe-width'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.optics?.id
+      },
+      {
+        questionText: 'A convex lens has focal length 15 cm. An object 5 cm tall is placed 25 cm from the lens. What is the height of the image?',
+        optionA: '7.5 cm',
+        optionB: '10 cm',
+        optionC: '12.5 cm',
+        optionD: '15 cm',
+        correctAnswer: 'A' as const,
+        explanation: 'Using lens equation: 1/f = 1/u + 1/v. 1/15 = 1/25 + 1/v. 1/v = 1/15 - 1/25 = (5-3)/75 = 2/75. v = 37.5 cm. Magnification m = v/u = 37.5/25 = 1.5. Image height = m × object height = 1.5 × 5 = 7.5 cm.',
+        class: 10,
+        difficultyLevel: 'HARD' as const,
+        tags: ['convex-lens', 'lens-equation', 'magnification'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.optics?.id
+      },
+
+      // Modern Physics Questions (3 questions)
+      {
+        questionText: 'What is the de Broglie wavelength of an electron moving with velocity 10⁶ m/s? (h = 6.63 × 10⁻³⁴ J⋅s, mₑ = 9.1 × 10⁻³¹ kg)',
+        optionA: '7.3 × 10⁻¹⁰ m',
+        optionB: '7.3 × 10⁻¹¹ m',
+        optionC: '7.3 × 10⁻¹² m',
+        optionD: '7.3 × 10⁻⁹ m',
+        correctAnswer: 'A' as const,
+        explanation: 'de Broglie wavelength λ = h/(mv) = (6.63 × 10⁻³⁴)/(9.1 × 10⁻³¹ × 10⁶) = 6.63/(9.1 × 10⁻³) = 7.3 × 10⁻¹⁰ m.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['de-broglie-wavelength', 'quantum-mechanics', 'wave-particle-duality'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.modernPhysics?.id
+      },
+      {
+        questionText: 'The work function of a metal is 2.5 eV. What is the threshold frequency for photoelectric effect? (h = 4.14 × 10⁻¹⁵ eV⋅s)',
+        optionA: '6.0 × 10¹⁴ Hz',
+        optionB: '8.0 × 10¹⁴ Hz',
+        optionC: '1.0 × 10¹⁵ Hz',
+        optionD: '1.2 × 10¹⁵ Hz',
+        correctAnswer: 'A' as const,
+        explanation: 'Threshold frequency ν₀ = W₀/h = 2.5/(4.14 × 10⁻¹⁵) = 6.04 × 10¹⁴ Hz ≈ 6.0 × 10¹⁴ Hz.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['photoelectric-effect', 'work-function', 'threshold-frequency'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.modernPhysics?.id
+      },
+      {
+        questionText: 'In the Bohr model of hydrogen atom, what is the radius of the second orbit? (a₀ = 0.529 Å)',
+        optionA: '1.058 Å',
+        optionB: '2.116 Å',
+        optionC: '4.232 Å',
+        optionD: '0.529 Å',
+        correctAnswer: 'B' as const,
+        explanation: 'In Bohr model, radius of nth orbit rₙ = n²a₀. For second orbit (n = 2), r₂ = 2² × 0.529 = 4 × 0.529 = 2.116 Å.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['bohr-model', 'hydrogen-atom', 'atomic-radius'],
+        categoryId: physicsCategory.id,
+        subcategoryId: physicsSubcategories.modernPhysics?.id
+      }
+    ];
+
+    // Create physics questions and link them to the physics exam
+    const createdPhysicsQuestions = [];
+    for (let i = 0; i < physicsQuestions.length; i++) {
+      const question = physicsQuestions[i];
+      const createdQuestion = await prisma.question.create({
+        data: {
+          ...question,
+          imageUrl: null,
+          figures: [],
+          status: 'PUBLISHED',
+          apiResponse: {
+            question: question.questionText,
+            options: {
+              A: question.optionA,
+              B: question.optionB,
+              C: question.optionC,
+              D: question.optionD
+            },
+            correct_answer: question.correctAnswer,
+            explanation: question.explanation
+          }
+        }
+      });
+      createdPhysicsQuestions.push(createdQuestion);
+
+      // Link question to physics exam
+      await prisma.examQuestion.create({
+        data: {
+          examId: physicsExam.id,
+          questionId: createdQuestion.id,
+          marks: 1.0,
+          negativeMarks: 0.25,
+          order: i + 1
+        }
+      });
+    }
+
+    console.log(`✅ Created ${createdPhysicsQuestions.length} physics questions`);
+    console.log('✅ All physics questions linked to the Comprehensive Physics exam');
+
+    // Create 20 Chemistry Questions
+    const chemistryQuestions = [
+      // Organic Chemistry Questions (6 questions)
+      {
+        questionText: 'What is the IUPAC name of the compound CH₃-CH(CH₃)-CH₂-CH₃?',
+        optionA: '2-methylbutane',
+        optionB: '3-methylbutane',
+        optionC: 'pentane',
+        optionD: '2-methylpentane',
+        correctAnswer: 'A' as const,
+        explanation: 'The longest carbon chain has 4 carbons (butane). The methyl group is attached to the second carbon from either end, so it is 2-methylbutane.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['nomenclature', 'alkanes', 'iupac'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+      {
+        questionText: 'Which of the following compounds will show geometrical isomerism?',
+        optionA: 'CH₃-CH₂-CH=CH₂',
+        optionB: 'CH₃-CH=CH-CH₃',
+        optionC: 'CH₃-CH₂-CH₂-CH₃',
+        optionD: 'CH₃-C≡C-CH₃',
+        correctAnswer: 'B' as const,
+        explanation: 'Geometrical isomerism occurs in alkenes when each carbon of the double bond has two different groups. CH₃-CH=CH-CH₃ (but-2-ene) shows cis-trans isomerism.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['isomerism', 'alkenes', 'stereochemistry'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+      {
+        questionText: 'What is the product when ethanol is oxidized with acidified K₂Cr₂O₇?',
+        optionA: 'Ethanoic acid',
+        optionB: 'Ethanal',
+        optionC: 'Ethyl ethanoate',
+        optionD: 'Ethane',
+        correctAnswer: 'A' as const,
+        explanation: 'Primary alcohols are oxidized to aldehydes and then to carboxylic acids. Ethanol (CH₃CH₂OH) is oxidized to ethanoic acid (CH₃COOH) with excess acidified K₂Cr₂O₇.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['oxidation', 'alcohols', 'carboxylic-acids'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+      {
+        questionText: 'Which reagent is used for the conversion of benzene to nitrobenzene?',
+        optionA: 'HNO₃ + H₂SO₄',
+        optionB: 'HNO₂ + HCl',
+        optionC: 'NH₃ + O₂',
+        optionD: 'N₂O₅ + H₂O',
+        correctAnswer: 'A' as const,
+        explanation: 'Nitration of benzene requires a mixture of concentrated nitric acid (HNO₃) and concentrated sulfuric acid (H₂SO₄). This generates the nitronium ion (NO₂⁺) which acts as the electrophile.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['electrophilic-substitution', 'benzene', 'nitration'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+      {
+        questionText: 'What is the hybridization of carbon in methane (CH₄)?',
+        optionA: 'sp',
+        optionB: 'sp²',
+        optionC: 'sp³',
+        optionD: 'sp³d',
+        correctAnswer: 'C' as const,
+        explanation: 'In methane, carbon forms four sigma bonds with hydrogen atoms. This requires four hybrid orbitals, which are formed by sp³ hybridization (one s + three p orbitals).',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['hybridization', 'methane', 'bonding'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+      {
+        questionText: 'Which of the following is the most stable carbocation?',
+        optionA: 'CH₃⁺',
+        optionB: '(CH₃)₂CH⁺',
+        optionC: '(CH₃)₃C⁺',
+        optionD: 'CH₃CH₂⁺',
+        correctAnswer: 'C' as const,
+        explanation: 'Carbocation stability increases with the number of alkyl groups attached: tertiary > secondary > primary > methyl. (CH₃)₃C⁺ is a tertiary carbocation and is the most stable due to hyperconjugation and inductive effects.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['carbocation', 'stability', 'hyperconjugation'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.organic?.id
+      },
+
+      // Inorganic Chemistry Questions (5 questions)
+      {
+        questionText: 'What is the oxidation state of chromium in K₂Cr₂O₇?',
+        optionA: '+3',
+        optionB: '+6',
+        optionC: '+7',
+        optionD: '+2',
+        correctAnswer: 'B' as const,
+        explanation: 'In K₂Cr₂O₇: K has +1, O has -2. Let Cr oxidation state be x. 2(+1) + 2(x) + 7(-2) = 0. 2 + 2x - 14 = 0. 2x = +12. x = +6.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['oxidation-state', 'transition-metals', 'dichromate'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.inorganic?.id
+      },
+      {
+        questionText: 'Which of the following has the highest melting point?',
+        optionA: 'NaCl',
+        optionB: 'MgO',
+        optionC: 'CaF₂',
+        optionD: 'KBr',
+        correctAnswer: 'B' as const,
+        explanation: 'Melting point of ionic compounds depends on lattice energy, which is proportional to (charge₁ × charge₂)/distance. MgO has charges +2 and -2, giving the highest lattice energy and melting point.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['lattice-energy', 'ionic-compounds', 'melting-point'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.inorganic?.id
+      },
+      {
+        questionText: 'What is the geometry of SF₆?',
+        optionA: 'Tetrahedral',
+        optionB: 'Square planar',
+        optionC: 'Octahedral',
+        optionD: 'Trigonal bipyramidal',
+        correctAnswer: 'C' as const,
+        explanation: 'SF₆ has 6 bonding pairs and 0 lone pairs around the central sulfur atom. According to VSEPR theory, this gives an octahedral geometry.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['vsepr-theory', 'molecular-geometry', 'sulfur-compounds'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.inorganic?.id
+      },
+      {
+        questionText: 'Which of the following is amphoteric in nature?',
+        optionA: 'Al₂O₃',
+        optionB: 'Na₂O',
+        optionC: 'SO₂',
+        optionD: 'CaO',
+        correctAnswer: 'A' as const,
+        explanation: 'Al₂O₃ (aluminum oxide) is amphoteric, meaning it can act as both an acid and a base. It reacts with acids to form salts and water, and with bases to form aluminates.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['amphoteric', 'aluminum-oxide', 'acid-base'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.inorganic?.id
+      },
+      {
+        questionText: 'What is the coordination number of the central metal ion in [Co(NH₃)₆]³⁺?',
+        optionA: '3',
+        optionB: '4',
+        optionC: '6',
+        optionD: '8',
+        correctAnswer: 'C' as const,
+        explanation: 'The coordination number is the number of ligand atoms directly bonded to the central metal ion. In [Co(NH₃)₆]³⁺, there are 6 NH₃ ligands, so the coordination number is 6.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['coordination-compounds', 'coordination-number', 'cobalt'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.inorganic?.id
+      },
+
+      // Physical Chemistry Questions (5 questions)
+      {
+        questionText: 'For the reaction N₂ + 3H₂ ⇌ 2NH₃, if the rate of formation of NH₃ is 2 × 10⁻³ mol L⁻¹ s⁻¹, what is the rate of consumption of H₂?',
+        optionA: '1 × 10⁻³ mol L⁻¹ s⁻¹',
+        optionB: '3 × 10⁻³ mol L⁻¹ s⁻¹',
+        optionC: '6 × 10⁻³ mol L⁻¹ s⁻¹',
+        optionD: '4 × 10⁻³ mol L⁻¹ s⁻¹',
+        correctAnswer: 'B' as const,
+        explanation: 'From stoichiometry: rate of consumption of H₂ = (3/2) × rate of formation of NH₃ = (3/2) × 2 × 10⁻³ = 3 × 10⁻³ mol L⁻¹ s⁻¹.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['reaction-rates', 'stoichiometry', 'kinetics'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.physical?.id
+      },
+      {
+        questionText: 'What is the pH of a 0.01 M solution of HCl?',
+        optionA: '1',
+        optionB: '2',
+        optionC: '12',
+        optionD: '14',
+        correctAnswer: 'B' as const,
+        explanation: 'HCl is a strong acid and completely ionizes. [H⁺] = 0.01 M = 10⁻² M. pH = -log[H⁺] = -log(10⁻²) = 2.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['ph', 'strong-acids', 'acid-base'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.physical?.id
+      },
+      {
+        questionText: 'For a first-order reaction, the half-life is 20 minutes. What percentage of the reactant will remain after 60 minutes?',
+        optionA: '12.5%',
+        optionB: '25%',
+        optionC: '50%',
+        optionD: '75%',
+        correctAnswer: 'A' as const,
+        explanation: 'After 60 minutes = 3 half-lives. After each half-life, 50% remains. After 3 half-lives: (1/2)³ = 1/8 = 0.125 = 12.5% remains.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['first-order-kinetics', 'half-life', 'reaction-kinetics'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.physical?.id
+      },
+      {
+        questionText: 'What is the molarity of a solution containing 4 g of NaOH in 250 mL of solution? (Molar mass of NaOH = 40 g/mol)',
+        optionA: '0.2 M',
+        optionB: '0.4 M',
+        optionC: '0.8 M',
+        optionD: '1.0 M',
+        correctAnswer: 'B' as const,
+        explanation: 'Moles of NaOH = 4g ÷ 40 g/mol = 0.1 mol. Volume = 250 mL = 0.25 L. Molarity = 0.1 mol ÷ 0.25 L = 0.4 M.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['molarity', 'concentration', 'solutions'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.physical?.id
+      },
+      {
+        questionText: 'According to Le Chatelier\'s principle, what happens to the equilibrium N₂ + 3H₂ ⇌ 2NH₃ + heat when temperature is increased?',
+        optionA: 'Shifts to the right',
+        optionB: 'Shifts to the left',
+        optionC: 'No change',
+        optionD: 'Reaction stops',
+        correctAnswer: 'B' as const,
+        explanation: 'The reaction is exothermic (heat is produced). When temperature is increased, the equilibrium shifts in the direction that absorbs heat, i.e., to the left (backward direction).',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['le-chateliers-principle', 'equilibrium', 'temperature-effect'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.physical?.id
+      },
+
+      // Analytical Chemistry Questions (4 questions)
+      {
+        questionText: 'In flame photometry, which element produces a characteristic yellow flame?',
+        optionA: 'Potassium',
+        optionB: 'Sodium',
+        optionC: 'Lithium',
+        optionD: 'Calcium',
+        correctAnswer: 'B' as const,
+        explanation: 'Sodium produces a characteristic bright yellow flame in flame tests and flame photometry due to the electronic transition at 589 nm wavelength.',
+        class: 12,
+        difficultyLevel: 'EASY' as const,
+        tags: ['flame-photometry', 'sodium', 'analytical-techniques'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.analytical?.id
+      },
+      {
+        questionText: 'What is the principle behind paper chromatography?',
+        optionA: 'Adsorption',
+        optionB: 'Partition',
+        optionC: 'Ion exchange',
+        optionD: 'Size exclusion',
+        correctAnswer: 'B' as const,
+        explanation: 'Paper chromatography works on the principle of partition, where components distribute between the stationary phase (water in paper) and mobile phase (solvent) based on their relative solubilities.',
+        class: 12,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['chromatography', 'partition', 'separation-techniques'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.analytical?.id
+      },
+      {
+        questionText: 'In a titration, the equivalence point is the point where:',
+        optionA: 'The indicator changes color',
+        optionB: 'The pH is 7',
+        optionC: 'Moles of acid equal moles of base',
+        optionD: 'The solution becomes neutral',
+        correctAnswer: 'C' as const,
+        explanation: 'The equivalence point is where the moles of acid exactly equal the moles of base (or more generally, where the analyte is completely consumed by the titrant). This may not always be at pH 7.',
+        class: 11,
+        difficultyLevel: 'MEDIUM' as const,
+        tags: ['titration', 'equivalence-point', 'acid-base'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.analytical?.id
+      },
+      {
+        questionText: 'Which of the following is used as an indicator in acid-base titrations?',
+        optionA: 'Starch',
+        optionB: 'Phenolphthalein',
+        optionC: 'Potassium permanganate',
+        optionD: 'Silver nitrate',
+        correctAnswer: 'B' as const,
+        explanation: 'Phenolphthalein is a common acid-base indicator that is colorless in acidic solution and pink/magenta in basic solution, with a transition range around pH 8.2-10.',
+        class: 11,
+        difficultyLevel: 'EASY' as const,
+        tags: ['indicators', 'phenolphthalein', 'acid-base-titration'],
+        categoryId: chemistryCategory.id,
+        subcategoryId: chemistrySubcategories.analytical?.id
+      }
+    ];
+
+    // Create chemistry questions and link them to the chemistry exam
+    const createdChemistryQuestions = [];
+    for (let i = 0; i < chemistryQuestions.length; i++) {
+      const question = chemistryQuestions[i];
+      const createdQuestion = await prisma.question.create({
+        data: {
+          ...question,
+          imageUrl: null,
+          figures: [],
+          status: 'PUBLISHED',
+          apiResponse: {
+            question: question.questionText,
+            options: {
+              A: question.optionA,
+              B: question.optionB,
+              C: question.optionC,
+              D: question.optionD
+            },
+            correct_answer: question.correctAnswer,
+            explanation: question.explanation
+          }
+        }
+      });
+      createdChemistryQuestions.push(createdQuestion);
+
+      // Link question to chemistry exam
+      await prisma.examQuestion.create({
+        data: {
+          examId: chemistryExam.id,
+          questionId: createdQuestion.id,
+          marks: 1.0,
+          negativeMarks: 0.25,
+          order: i + 1
+        }
+      });
+    }
+
+    console.log(`✅ Created ${createdChemistryQuestions.length} chemistry questions`);
+    console.log('✅ All chemistry questions linked to the Comprehensive Chemistry exam');
 
     console.log('\n🎉 Production seed completed successfully!');
     console.log('📊 Summary:');
