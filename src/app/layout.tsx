@@ -24,16 +24,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "/",
+    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     siteName: "AlphaExam",
     title: "AlphaExam - India's Best Online Mock Testing Platform",
     description:
       "Take mock tests for mathematical olympiads, JEE, NEET and other competitive exams.",
     images: [
       {
-        url: "ogimage.png",
-        width: 1200,
-        height: 630,
+        url: `${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/ogimage.png`,
+        width: 681,
+        height: 420,
         alt: "AlphaExam - India's Best Online Mock Testing Platform",
       },
     ],
@@ -43,7 +45,11 @@ export const metadata: Metadata = {
     title: "AlphaExam - India's Best Online Mock Testing Platform",
     description:
       "Take mock tests for mathematical olympiads, JEE, NEET and other competitive exams.",
-    images: ["ogimage.png"],
+    images: [
+      `${
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      }/ogimage.png`,
+    ],
   },
   robots: {
     index: true,
@@ -60,7 +66,6 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-
           <script
             type="text/javascript"
             id="MathJax-script"
