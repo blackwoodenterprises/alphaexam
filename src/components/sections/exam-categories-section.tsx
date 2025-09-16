@@ -42,7 +42,9 @@ export function ExamCategoriesSection() {
           throw new Error('Failed to fetch exam categories');
         }
         const data = await response.json();
-        setExamCategories(data);
+        // Filter out categories with 0 exams
+        const filteredData = data.filter((category: ExamCategory) => category.examCount > 0);
+        setExamCategories(filteredData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -144,7 +146,7 @@ export function ExamCategoriesSection() {
                   {category.name}
                 </CardTitle>
 
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-gray-600 line-clamp-2">
                   {category.description || `Comprehensive preparation for ${category.name} examinations`}
                 </CardDescription>
 

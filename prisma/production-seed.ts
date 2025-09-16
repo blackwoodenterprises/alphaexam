@@ -67,6 +67,14 @@ async function main() {
       {
         name: 'SOF Science Olympiad',
         description: 'Science Olympiad Foundation Science Olympiad covering Physics, Chemistry, and Biology for classes 1-12.'
+      },
+      {
+        name: 'SOF Physics Olympiad',
+        description: 'Science Olympiad Foundation Physics Olympiad for comprehensive physics problem-solving and conceptual understanding.'
+      },
+      {
+        name: 'SOF Chemistry Olympiad',
+        description: 'Science Olympiad Foundation Chemistry Olympiad for comprehensive chemistry problem-solving and conceptual understanding.'
       }
     ];
 
@@ -176,7 +184,7 @@ async function main() {
         price: 25.0,
         duration: 120, // 2 hours
         questionsToServe: 20,
-        examCategoryId: createdExamCategories['SOF Science Olympiad'].id,
+        examCategoryId: createdExamCategories['SOF Physics Olympiad'].id,
         createdById: systemAdmin.id,
         isActive: true,
         isFree: false
@@ -194,7 +202,7 @@ async function main() {
         price: 25.0,
         duration: 120, // 2 hours
         questionsToServe: 20,
-        examCategoryId: createdExamCategories['SOF Science Olympiad'].id,
+        examCategoryId: createdExamCategories['SOF Chemistry Olympiad'].id,
         createdById: systemAdmin.id,
         isActive: true,
         isFree: false
