@@ -80,10 +80,6 @@ export function Footer() {
                 <Phone className="w-4 h-4" />
                 <span className="text-sm">8851134099</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">D-52, Supremework Co-Working Space, Chhattarpur, New Delhi - 110047</span>
-              </div>
             </div>
 
             {/* Social Links */}
