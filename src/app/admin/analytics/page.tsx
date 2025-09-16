@@ -18,6 +18,7 @@ async function getAnalyticsData() {
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
@@ -33,6 +34,12 @@ async function getAnalyticsData() {
       lastMonthExams,
       lastMonthAttempts,
       lastMonthAvgScore,
+      recentTransactions,
+      paymentGatewayStats,
+      recentUsers,
+      recentExams,
+      totalRevenue,
+      monthlyRevenue,
     ] = await Promise.all([
       // Total users
       prisma.user.count(),
@@ -56,20 +63,21 @@ async function getAnalyticsData() {
       prisma.examAttempt.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            gte: last7Days,
           },
         },
       }),
 
-      // Category performance
-      prisma.exam.groupBy({
-        by: ["examCategoryId"],
-        _count: {
-          id: true,
-        },
-        where: {
-          examCategoryId: {
-            not: null,
+      // Real category performance with exam categories
+      prisma.examCategory.findMany({
+        include: {
+          exams: {
+            include: {
+              examAttempts: {
+                where: { status: "COMPLETED" },
+                select: { percentage: true },
+              },
+            },
           },
         },
       }),
@@ -125,6 +133,64 @@ async function getAnalyticsData() {
           },
         },
       }),
+
+      // Recent transactions for activity feed
+      prisma.transaction.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: { firstName: true, lastName: true, email: true },
+          },
+        },
+      }),
+
+      // Payment gateway statistics
+      prisma.transaction.groupBy({
+        by: ["paymentGateway", "status"],
+        _count: true,
+        _sum: { amount: true },
+        where: {
+          createdAt: {
+            gte: thisMonth,
+          },
+        },
+      }),
+
+      // Recent users for activity feed
+      prisma.user.findMany({
+        take: 3,
+        orderBy: { createdAt: "desc" },
+        select: { firstName: true, lastName: true, email: true, createdAt: true },
+      }),
+
+      // Recent exams for activity feed
+      prisma.exam.findMany({
+        take: 2,
+        orderBy: { createdAt: "desc" },
+        include: {
+          createdBy: {
+            select: { firstName: true, lastName: true },
+          },
+        },
+      }),
+
+      // Total revenue
+      prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: { status: "COMPLETED" },
+      }),
+
+      // Monthly revenue
+      prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: thisMonth,
+          },
+        },
+      }),
     ]);
 
     // Calculate completion rate
@@ -174,6 +240,33 @@ async function getAnalyticsData() {
       ? (((currentAvgScore - lastMonthScore) / lastMonthScore) * 100).toFixed(0)
       : "0";
 
+    // Process category stats with real data
+    const processedCategoryStats = categoryStats.map(category => {
+      const allAttempts = category.exams.flatMap(exam => exam.examAttempts);
+      const avgScore = allAttempts.length > 0
+        ? allAttempts.reduce((sum, attempt) => sum + (attempt.percentage || 0), 0) / allAttempts.length
+        : 0;
+      
+      return {
+        name: category.name,
+        attempts: allAttempts.length,
+        avgScore: Math.round(avgScore),
+      };
+    });
+
+    // Process payment gateway stats
+    const processedPaymentStats = paymentGatewayStats.reduce((acc, stat) => {
+      if (!acc[stat.paymentGateway]) {
+        acc[stat.paymentGateway] = { total: 0, completed: 0, revenue: 0 };
+      }
+      acc[stat.paymentGateway].total += stat._count;
+      if (stat.status === 'COMPLETED') {
+        acc[stat.paymentGateway].completed += stat._count;
+        acc[stat.paymentGateway].revenue += stat._sum.amount || 0;
+      }
+      return acc;
+    }, {} as Record<string, { total: number; completed: number; revenue: number }>);
+
     return {
       totalUsers,
       totalExams,
@@ -181,7 +274,7 @@ async function getAnalyticsData() {
       totalAttempts,
       avgScore: currentAvgScore,
       recentActivity,
-      categoryStats,
+      categoryStats: processedCategoryStats,
       monthlyStats,
       completionRate,
       avgDuration,
@@ -189,6 +282,12 @@ async function getAnalyticsData() {
       examsGrowth,
       attemptsGrowth,
       scoreGrowth,
+      recentTransactions,
+      paymentGatewayStats: processedPaymentStats,
+      recentUsers,
+      recentExams,
+      totalRevenue: totalRevenue._sum.amount || 0,
+      monthlyRevenue: monthlyRevenue._sum.amount || 0,
     };
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -207,6 +306,12 @@ async function getAnalyticsData() {
       examsGrowth: "0",
       attemptsGrowth: "0",
       scoreGrowth: "0",
+      recentTransactions: [],
+      paymentGatewayStats: {},
+      recentUsers: [],
+      recentExams: [],
+      totalRevenue: 0,
+      monthlyRevenue: 0,
     };
   }
 }
@@ -280,18 +385,7 @@ export default async function AnalyticsPage() {
     },
   ];
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "OLYMPIAD":
-        return "🏆";
-      case "JEE":
-        return "⚙️";
-      case "NEET":
-        return "🩺";
-      default:
-        return "📚";
-    }
-  };
+
 
   return (
     <div className="space-y-6">
@@ -368,39 +462,43 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-4">
-              {["OLYMPIAD", "JEE", "NEET", "OTHER"].map((category, index) => {
-                const attempts = Math.floor(Math.random() * 500) + 100;
-                const avgScore = Math.floor(Math.random() * 30) + 60;
-
-                return (
+              {analytics.categoryStats.length > 0 ? (
+                analytics.categoryStats.map((category, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg">
-                          {getCategoryIcon(category)}
+                          {category.name === "JEE" ? "⚙️" : 
+                           category.name === "NEET" ? "🩺" : 
+                           category.name === "OLYMPIAD" ? "🏆" : "📚"}
                         </span>
                         <span className="font-medium text-gray-900">
-                          {category}
+                          {category.name}
                         </span>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-gray-900">
-                          {avgScore}%
+                          {category.avgScore}%
                         </p>
                         <p className="text-xs text-gray-600">
-                          {attempts} attempts
+                          {category.attempts} attempts
                         </p>
                       </div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${avgScore}%` }}
+                        style={{ width: `${category.avgScore}%` }}
                       ></div>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No category data available yet</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -418,107 +516,125 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-4">
-              {[
-                {
-                  action: "New user registration",
-                  user: "John Doe",
-                  time: "2 minutes ago",
-                  type: "user",
-                },
-                {
-                  action: "Exam completed",
-                  user: "Jane Smith",
-                  time: "5 minutes ago",
-                  type: "exam",
-                },
-                {
-                  action: "Question uploaded",
-                  user: "Admin",
-                  time: "12 minutes ago",
-                  type: "content",
-                },
-                {
-                  action: "Payment received",
-                  user: "Mike Johnson",
-                  time: "25 minutes ago",
-                  type: "payment",
-                },
-                {
-                  action: "New exam created",
-                  user: "Admin",
-                  time: "1 hour ago",
-                  type: "content",
-                },
-              ].map((activity, index) => (
+              {/* Recent Users */}
+              {analytics.recentUsers.map((user, index) => (
                 <div
-                  key={index}
-                  className="flex items-center space-x-3 p-3 border-l-4 border-purple-200 bg-purple-50/50"
+                  key={`user-${index}`}
+                  className="flex items-center space-x-3 p-3 border-l-4 border-blue-200 bg-blue-50/50"
                 >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      activity.type === "user"
-                        ? "bg-blue-500"
-                        : activity.type === "exam"
-                        ? "bg-green-500"
-                        : activity.type === "content"
-                        ? "bg-purple-500"
-                        : "bg-orange-500"
-                    }`}
-                  ></div>
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">
-                      {activity.action}
+                      New user registration
                     </p>
                     <p className="text-xs text-gray-600">
-                      {activity.user} • {activity.time}
+                      {user.firstName} {user.lastName} • {new Date(user.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
               ))}
+
+              {/* Recent Exams */}
+              {analytics.recentExams.map((exam, index) => (
+                <div
+                  key={`exam-${index}`}
+                  className="flex items-center space-x-3 p-3 border-l-4 border-purple-200 bg-purple-50/50"
+                >
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      New exam created: {exam.title}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {exam.createdBy.firstName} {exam.createdBy.lastName} • {new Date(exam.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Recent Transactions */}
+              {analytics.recentTransactions.slice(0, 3).map((transaction, index) => (
+                <div
+                  key={`transaction-${index}`}
+                  className="flex items-center space-x-3 p-3 border-l-4 border-green-200 bg-green-50/50"
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      Payment {transaction.status.toLowerCase()}: ₹{transaction.amount}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {transaction.user.firstName} {transaction.user.lastName} • {new Date(transaction.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {analytics.recentUsers.length === 0 && analytics.recentExams.length === 0 && analytics.recentTransactions.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No recent activity</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Revenue & Credits */}
+        {/* Revenue & Payment Analytics */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <DollarSign className="w-5 h-5 text-purple-600" />
-              <span>Revenue & Credits</span>
+              <span>Revenue & Payment Analytics</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">₹45,280</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    ₹{analytics.monthlyRevenue.toLocaleString()}
+                  </p>
                   <p className="text-sm text-green-700">This Month</p>
                 </div>
                 <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">12,450</p>
-                  <p className="text-sm text-blue-700">Credits Sold</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    ₹{analytics.totalRevenue.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-blue-700">Total Revenue</p>
                 </div>
               </div>
 
+              {/* Payment Gateway Stats */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Credit Packages</span>
-                  <span className="text-sm font-semibold">₹32,100</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    Premium Features
-                  </span>
-                  <span className="text-sm font-semibold">₹8,950</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Subscriptions</span>
-                  <span className="text-sm font-semibold">₹4,230</span>
-                </div>
+                <h4 className="font-semibold text-gray-900">Payment Gateways</h4>
+                {Object.entries(analytics.paymentGatewayStats).map(([gateway, stats]) => (
+                  <div key={gateway} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 capitalize">
+                        {gateway.toLowerCase()}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        ₹{stats.revenue.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>{stats.completed}/{stats.total} transactions</span>
+                      <span>{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% success rate</span>
+                    </div>
+                  </div>
+                ))}
+                
+                {Object.keys(analytics.paymentGatewayStats).length === 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    <p className="text-sm">No payment data for this month</p>
+                  </div>
+                )}
+
                 <hr className="my-2" />
                 <div className="flex justify-between items-center font-semibold">
-                  <span>Total Revenue</span>
-                  <span className="text-green-600">₹45,280</span>
+                  <span>Monthly Total</span>
+                  <span className="text-green-600">₹{analytics.monthlyRevenue.toLocaleString()}</span>
                 </div>
               </div>
             </div>

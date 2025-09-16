@@ -9,9 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Upload, Eye, Edit, Trash2, FileText, GraduationCap } from "lucide-react";
+import { Plus, Upload, Eye, Edit, Trash2, FileText, GraduationCap, PenTool } from "lucide-react";
 import { BulkAddToExamModal } from "./bulk-add-to-exam-modal";
 import { QuestionUploadModal } from "@/components/admin/question-upload-modal";
+import { QuestionAddManualModal } from "@/components/admin/question-add-manual-modal";
 import { QuestionPreview } from "@/components/admin/question-preview";
 import { QuestionEditModal } from "@/components/admin/question-edit-modal";
 import { QuestionsFilters } from "@/components/admin/questions-filters";
@@ -245,12 +246,20 @@ export function QuestionsPageClient({
             Manage your question database with AI-powered processing
           </p>
         </div>
-        <QuestionUploadModal categories={categories} onQuestionCreated={refreshQuestions}>
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Question
-          </Button>
-        </QuestionUploadModal>
+        <div className="flex space-x-3">
+          <QuestionAddManualModal categories={categories} onQuestionCreated={refreshQuestions}>
+            <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+              <PenTool className="w-4 h-4 mr-2" />
+              Add Manually
+            </Button>
+          </QuestionAddManualModal>
+          <QuestionUploadModal categories={categories} onQuestionCreated={refreshQuestions}>
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Question
+            </Button>
+          </QuestionUploadModal>
+        </div>
       </div>
 
       {/* Stats Cards */}

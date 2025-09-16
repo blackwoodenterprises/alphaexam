@@ -90,12 +90,6 @@ const navigationItems = [
         icon: Settings,
         description: "System configuration",
       },
-      {
-        name: "Components",
-        href: "/admin/components-demo",
-        icon: Palette,
-        description: "UI components showcase",
-      },
     ],
   },
 ];
