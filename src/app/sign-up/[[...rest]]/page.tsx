@@ -46,8 +46,8 @@ export default function SignUpPage() {
                   </span>
                 </h1>
                 <p className="text-xl text-gray-600">
-                  Start your journey to exam success with India&apos;s most trusted
-                  mock testing platform.
+                  Start your journey to exam success with India&apos;s most
+                  trusted mock testing platform.
                 </p>
               </div>
 
@@ -73,18 +73,16 @@ export default function SignUpPage() {
                 ))}
               </div>
 
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white">
-                <h3 className="font-bold text-lg mb-2">
-                  Special Launch Offer!
-                </h3>
-                <p className="text-purple-100 mb-3">
-                  Get 50% off on your first credit purchase. Use code:{" "}
-                  <span className="font-mono bg-white/20 px-2 py-1 rounded">
-                    ALPHA50
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-white">
+                <h3 className="font-bold text-lg mb-2">🎉 Welcome Bonus!</h3>
+                <p className="text-green-100 mb-3">
+                  New students who sign up and complete onboarding receive{" "}
+                  <span className="font-bold bg-white/20 px-2 py-1 rounded">
+                    100 FREE credits
                   </span>
                 </p>
-                <div className="text-sm text-purple-200">
-                  Limited time offer • Valid for new users only
+                <div className="text-sm text-green-200">
+                  Start practicing immediately • No payment required
                 </div>
               </div>
             </div>
