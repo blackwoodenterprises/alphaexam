@@ -382,27 +382,28 @@ export default async function TransactionsPage() {
                     key={transaction.id}
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="space-y-4">
+                      {/* Transaction Header */}
                       <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                           {transaction.user.firstName?.charAt(0) ||
                             transaction.user.email.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <p className="font-medium text-gray-900">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1">
+                            <p className="font-medium text-gray-900 truncate">
                               {transaction.user.firstName
                                 ? `${transaction.user.firstName} ${transaction.user.lastName}`
                                 : transaction.user.email}
                             </p>
                             <Badge
                               variant="outline"
-                              className={getTypeColor(transaction.type)}
+                              className={`${getTypeColor(transaction.type)} mt-1 sm:mt-0`}
                             >
                               {transaction.type.replace("_", " ")}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="text-sm text-gray-600 mb-1 truncate">
                             {transaction.user.email}
                           </p>
                           <p className="text-sm text-gray-500 mb-2">
@@ -418,36 +419,43 @@ export default async function TransactionsPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div
-                          className={`font-semibold mb-1 ${
-                            transaction.type === 'ADMIN_CREDIT' || transaction.type === 'CREDIT_PURCHASE'
+
+                      {/* Transaction Details & Actions */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pt-3 border-t border-gray-100">
+                        {/* Amount & Credits */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
+                          <div
+                            className={`font-semibold ${
+                              transaction.type === 'ADMIN_CREDIT' || transaction.type === 'CREDIT_PURCHASE'
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {formatAmount(transaction.amount, transaction.type, transaction.currency, transaction.paymentGateway)}
+                          </div>
+                          <div className={`text-sm font-medium ${
+                            transaction.type === 'EXAM_PAYMENT'
+                              ? "text-red-600"
+                              : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
                               ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {formatAmount(transaction.amount, transaction.type, transaction.currency, transaction.paymentGateway)}
+                              : "text-blue-600"
+                          }`}>
+                            {transaction.type === 'EXAM_PAYMENT'
+                              ? `-${Math.abs(transaction.credits)} credits`
+                              : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
+                              ? `+${Math.abs(transaction.credits)} credits`
+                              : `${transaction.credits >= 0 ? '+' : ''}${transaction.credits} credits`
+                            }
+                          </div>
                         </div>
-                        <div className={`text-sm font-medium mb-2 ${
-                          transaction.type === 'EXAM_PAYMENT'
-                            ? "text-red-600"
-                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
-                            ? "text-green-600"
-                            : "text-blue-600"
-                        }`}>
-                          {transaction.type === 'EXAM_PAYMENT'
-                            ? `-${Math.abs(transaction.credits)} credits`
-                            : transaction.type === 'CREDIT_PURCHASE' || transaction.type === 'ADMIN_CREDIT'
-                            ? `+${Math.abs(transaction.credits)} credits`
-                            : `${transaction.credits >= 0 ? '+' : ''}${transaction.credits} credits`
-                          }
-                        </div>
-                        <div className="flex items-center justify-end space-x-2">
+
+                        {/* Status & Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                           <Badge
                             variant="outline"
                             className={`${getStatusColor(
                               transaction.status
-                            )} flex items-center space-x-1`}
+                            )} flex items-center space-x-1 w-fit`}
                           >
                             {getStatusIcon(transaction.status)}
                             <span>{transaction.status}</span>

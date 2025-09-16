@@ -23,7 +23,7 @@ async function getQuestions() {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 20, // Limit for performance
+      // Removed take: 20 limit to show all questions on initial load
     });
 
     return questions.map(question => ({

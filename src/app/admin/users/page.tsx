@@ -225,73 +225,86 @@ export default async function UsersPage() {
               users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-200 hover:bg-purple-50/50 transition-colors"
+                  className="p-4 border border-gray-200 rounded-lg hover:border-purple-200 hover:bg-purple-50/50 transition-colors"
                 >
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
-                      {user.firstName?.charAt(0) ||
-                        user.email.charAt(0).toUpperCase()}
+                  <div className="space-y-4">
+                    {/* User Header */}
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        {user.firstName?.charAt(0) ||
+                          user.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-1">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            {user.firstName
+                              ? `${user.firstName} ${user.lastName}`
+                              : user.email}
+                          </h3>
+                          <div className="flex items-center space-x-2 mt-1 sm:mt-0">
+                            <Badge
+                              variant="outline"
+                              className={getRoleColor(user.role)}
+                            >
+                              {user.role}
+                            </Badge>
+                            {user.onboardingComplete && (
+                              <Badge variant="secondary">Onboarded</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-1">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {user.firstName
-                            ? `${user.firstName} ${user.lastName}`
-                            : user.email}
-                        </h3>
-                        <Badge
-                          variant="outline"
-                          className={getRoleColor(user.role)}
+
+                    {/* User Details */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{user.email}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>Joined {formatDate(user.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="w-4 h-4 flex-shrink-0" />
+                        <span>{user.credits} credits</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Trophy className="w-4 h-4 flex-shrink-0" />
+                        <span>{user._count.examAttempts} exams</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 pt-2 border-t border-gray-100">
+                      <div className="flex-1">
+                        <AddCreditsModal
+                          userId={user.id}
+                          userName={user.firstName || user.email}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Link href={`/admin/users/${user.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
                         >
-                          {user.role}
-                        </Badge>
-                        {user.onboardingComplete && (
-                          <Badge variant="secondary">Onboarded</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <Mail className="w-4 h-4" />
-                          <span className="truncate">{user.email}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Joined {formatDate(user.createdAt)}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <CreditCard className="w-4 h-4" />
-                          <span>{user.credits} credits</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Trophy className="w-4 h-4" />
-                          <span>{user._count.examAttempts} exams</span>
-                        </div>
+                          <Ban className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <AddCreditsModal
-                      userId={user.id}
-                      userName={user.firstName || user.email}
-                    />
-                    <Link href={`/admin/users/${user.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Ban className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
               ))

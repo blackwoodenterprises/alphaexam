@@ -212,15 +212,6 @@ export function ExamsManagementClient({
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
-    {
-      title: "Revenue",
-      value: `₹${stats.totalRevenue.toLocaleString()}`,
-      change: "From completed transactions",
-      changeType: "neutral" as const,
-      icon: DollarSign,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-    },
   ];
 
   return (
@@ -242,7 +233,7 @@ export function ExamsManagementClient({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statsCards.map((stat, index) => (
           <Card
             key={index}
@@ -280,19 +271,22 @@ export function ExamsManagementClient({
           <CardTitle>Filters & Search</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search exams by title, category, creator..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search exams by title, category, creator..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+          </div>
+          
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Dropdown
               placeholder="All Categories"
               options={[
@@ -390,113 +384,96 @@ export function ExamsManagementClient({
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Exam Details
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Category
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Questions
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Duration
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Credits
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Attempts
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Status
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExams.map((exam) => (
-                    <tr
-                      key={exam.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-4 px-4">
+            <div className="space-y-4">
+              {filteredExams.map((exam) => (
+                <Card key={exam.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-4">
+                      {/* Header Section */}
+                      <div className="space-y-3">
                         <div>
-                          <div className="font-medium text-gray-900">
+                          <h3 className="font-semibold text-lg text-gray-900 mb-1 break-words">
                             {exam.title}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Created by {exam.createdBy.firstName}{" "}
-                            {exam.createdBy.lastName}
-                          </div>
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            Created by {exam.createdBy.firstName} {exam.createdBy.lastName}
+                          </p>
                         </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                            exam.examCategory?.name || null
-                          )}`}
-                        >
-                          {exam.examCategory?.name || "No Category"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-900">
+                        
+                        {/* Badges */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                              exam.examCategory?.name || null
+                            )}`}
+                          >
+                            {exam.examCategory?.name || "No Category"}
+                          </span>
+                          <span
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                              exam.isActive
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {exam.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Stats Section */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileQuestion className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-600 flex-shrink-0">Questions:</span>
+                          <span className="font-medium text-gray-900 truncate">
                             {exam._count.examQuestions}
                           </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs px-2 py-1 h-6"
-                            onClick={() =>
-                              (window.location.href = `/admin/exams/${exam.id}/questions`)
-                            }
-                          >
-                            <FileQuestion className="w-3 h-3 mr-1" />
-                            Manage
-                          </Button>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 text-gray-900">
-                        {exam.duration} min
-                      </td>
-                      <td className="py-4 px-4">
-                        {exam.isFree ? (
-                          <span className="text-green-600 font-medium">
-                            Free
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-600 flex-shrink-0">Duration:</span>
+                          <span className="font-medium text-gray-900 truncate">
+                            {exam.duration} min
                           </span>
-                        ) : (
-                          <span className="text-gray-900">{exam.price}</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-gray-900">
-                        {exam._count.examAttempts}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                            exam.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                        </div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-600 flex-shrink-0">Attempts:</span>
+                          <span className="font-medium text-gray-900 truncate">
+                            {exam._count.examAttempts}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <DollarSign className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-600 flex-shrink-0">Price:</span>
+                          {exam.isFree ? (
+                            <span className="font-medium text-green-600 truncate">Free</span>
+                          ) : (
+                            <span className="font-medium text-gray-900 truncate">₹{exam.price}</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Actions Section */}
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-3 border-t border-gray-100">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs px-3 py-2 flex-1 sm:flex-none"
+                          onClick={() =>
+                            (window.location.href = `/admin/exams/${exam.id}/questions`)
+                          }
                         >
-                          {exam.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center space-x-2">
+                          <FileQuestion className="w-3 h-3 mr-1" />
+                          Manage Questions
+                        </Button>
+                        <div className="flex gap-2">
                           <ExamEditModal
                             exam={exam}
                             onExamUpdated={handleExamUpdated}
                           >
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
                               <Edit className="w-4 h-4" />
                             </Button>
                           </ExamEditModal>
@@ -507,17 +484,17 @@ export function ExamsManagementClient({
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 flex-1 sm:flex-none"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </ExamDeleteModal>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
