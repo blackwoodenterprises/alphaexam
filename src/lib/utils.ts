@@ -39,3 +39,12 @@ export function getInitials(firstName?: string, lastName?: string): string {
   const last = lastName?.charAt(0).toUpperCase() || ''
   return `${first}${last}` || 'U'
 }
+
+export function truncateText(text: string | null, maxWords: number = 10): string {
+  if (!text) return ''
+  
+  const words = text.trim().split(/\s+/)
+  if (words.length <= maxWords) return text
+  
+  return words.slice(0, maxWords).join(' ') + '...'
+}

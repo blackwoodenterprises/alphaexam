@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageLoading } from "@/components/ui/spinner";
+import { truncateText } from "@/lib/utils";
 
 import {
   FolderTree,
@@ -204,7 +205,7 @@ export default function CategoriesPage() {
                     <div>
                       <CardTitle className="text-lg">{category.name}</CardTitle>
                       <p className="text-sm text-gray-600 mt-1">
-                        {category.description || "No description provided"}
+                        {truncateText(category.description, 10) || "No description provided"}
                       </p>
                     </div>
                   </div>
