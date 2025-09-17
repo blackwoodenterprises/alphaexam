@@ -224,50 +224,64 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
             <span>Student Information</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
+        <CardContent className="p-4 sm:p-6">
+          <div className="space-y-6 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 sm:gap-6">
+            <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                 {student.firstName?.charAt(0) ||
                   student.email.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Full Name</p>
-                <p className="font-semibold">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Full Name</p>
+                <p className="font-semibold text-gray-900 truncate">
                   {student.firstName
                     ? `${student.firstName} ${student.lastName}`
                     : "Not provided"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Mail className="w-8 h-8 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-600">Email</p>
-                <p className="font-semibold">{student.email}</p>
+            <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <Mail className="w-6 h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Email</p>
+                <p className="font-semibold text-gray-900 truncate">{student.email}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-600">Joined</p>
-                <p className="font-semibold">{formatDate(student.createdAt)}</p>
+            <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg border border-green-100">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Joined</p>
+                <p className="font-semibold text-gray-900">{formatDate(student.createdAt)}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Badge
-                variant="outline"
-                className={`${
-                  student.role === "ADMIN"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-blue-100 text-blue-800"
-                }`}
-              >
-                {student.role}
-              </Badge>
-              {student.onboardingComplete && (
-                <Badge variant="secondary">Onboarded</Badge>
-              )}
+            <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg border border-orange-100">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-6 h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Status</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs ${
+                      student.role === "ADMIN"
+                        ? "bg-red-100 text-red-800 border-red-200"
+                        : "bg-blue-100 text-blue-800 border-blue-200"
+                    }`}
+                  >
+                    {student.role}
+                  </Badge>
+                  {student.onboardingComplete && (
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-200">
+                      Onboarded
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

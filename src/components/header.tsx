@@ -13,6 +13,7 @@ export function Header() {
 
   const navigation = [
     { name: "Exams", href: "/exams" },
+    { name: "Pricing", href: "/pricing" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];

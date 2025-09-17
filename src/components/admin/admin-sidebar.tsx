@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Users,
   FolderTree,
-  Settings,
   BarChart3,
   CreditCard,
   Palette,
@@ -83,17 +82,7 @@ const navigationItems = [
       },
     ],
   },
-  {
-    title: "System",
-    items: [
-      {
-        name: "Settings",
-        href: "/admin/settings",
-        icon: Settings,
-        description: "System configuration",
-      },
-    ],
-  },
+
 ];
 
 interface AdminSidebarProps {

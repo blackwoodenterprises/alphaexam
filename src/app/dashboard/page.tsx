@@ -142,15 +142,6 @@ export default function UserDashboard() {
       bgColor: "bg-blue-50",
     },
     {
-      title: "Average Score",
-      value: "85%",
-      change: "+5% improvement",
-      changeType: "positive" as const,
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-    },
-    {
       title: "Credits Balance",
       value: user.credits.toString(),
       change: "Available for tests",
@@ -158,15 +149,6 @@ export default function UserDashboard() {
       icon: CreditCard,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-    },
-    {
-      title: "Study Streak",
-      value: "7 days",
-      change: "Keep it up!",
-      changeType: "positive" as const,
-      icon: Target,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
     },
   ];
 
@@ -187,7 +169,7 @@ export default function UserDashboard() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {stats.map((stat, index) => (
               <Card
                 key={index}
@@ -253,7 +235,7 @@ export default function UserDashboard() {
                 </a>
 
                 <a
-                  href="/buy-credits"
+                  href="/pricing"
                   className="p-4 border border-gray-200 rounded-lg hover:bg-pink-50 hover:border-pink-200 transition-colors duration-200 group text-center"
                 >
                   <CreditCard className="w-8 h-8 text-pink-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
@@ -446,7 +428,7 @@ export default function UserDashboard() {
                   <span>Recent Transactions</span>
                 </div>
                 <Button
-                  onClick={() => router.push("/buy-credits")}
+                  onClick={() => router.push("/pricing")}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   size="sm"
                 >
@@ -563,7 +545,7 @@ export default function UserDashboard() {
                     transactions here
                   </p>
                   <Button
-                    onClick={() => router.push("/buy-credits")}
+                    onClick={() => router.push("/pricing")}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
