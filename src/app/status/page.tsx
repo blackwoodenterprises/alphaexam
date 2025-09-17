@@ -234,7 +234,7 @@ export default function StatusPage() {
                     className="border-0 bg-white/80 backdrop-blur-sm hover:bg-white transition-all duration-300"
                   >
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                             <Icon className="w-6 h-6 text-white" />
@@ -248,22 +248,24 @@ export default function StatusPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-6">
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Uptime</p>
-                            <p className="font-semibold text-green-600">
-                              {service.uptime}
-                            </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                          <div className="flex justify-between sm:block">
+                            <div className="text-left sm:text-right">
+                              <p className="text-sm text-gray-500">Uptime</p>
+                              <p className="font-semibold text-green-600">
+                                {service.uptime}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-500">
+                                Response Time
+                              </p>
+                              <p className="font-semibold text-blue-600">
+                                {service.responseTime}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">
-                              Response Time
-                            </p>
-                            <p className="font-semibold text-blue-600">
-                              {service.responseTime}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center justify-center sm:justify-start space-x-2">
                             {getStatusIcon(service.status)}
                             <span
                               className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
@@ -297,14 +299,14 @@ export default function StatusPage() {
                   className="border-0 bg-white/80 backdrop-blur-sm hover:bg-white transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0 mb-4">
                       <div className="flex items-center space-x-3">
                         <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">
                             {incident.title}
                           </h3>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500 mt-1">
                             <span className="flex items-center space-x-1">
                               <Calendar className="w-4 h-4" />
                               <span>{incident.date}</span>
@@ -314,7 +316,7 @@ export default function StatusPage() {
                               <span>{incident.duration}</span>
                             </span>
                             <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${
                                 incident.impact === "Low"
                                   ? "bg-green-100 text-green-700"
                                   : incident.impact === "Medium"
@@ -327,7 +329,7 @@ export default function StatusPage() {
                           </div>
                         </div>
                       </div>
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium self-start">
                         Resolved
                       </span>
                     </div>
